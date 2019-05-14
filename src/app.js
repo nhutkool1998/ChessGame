@@ -34,33 +34,56 @@ var HelloWorldLayer = cc.Layer.extend({
         //////////////////////////////
         // 1. super init first
         this._super();
+        this.mapNode = new cc.Sprite();
 
         /////////////////////////////
         // 2. add a menu item with "X" image, which is clicked to quit the program
         //    you may modify it.
         // ask the window size
         //  this.tileMap  = cc.Sprite.create("res/newMappp.png");
+        var mapWidth,mapHeight; 
         this.tileMap = cc.TMXTiledMap.create(res.chessMap);
+        mapHeight = this.tileMap.height;
+        mapWidth = this.tileMap.width; 
+
         cc.log(this.tileMap);
-        this.tileMap.setPosition(cc.winSize.width / 2, cc.winSize.height / 2);
+        this.tileMap.setPosition(0, 0);
         this.tileMap.setAnchorPoint(0.5, 0.5);
-        this.addChild(this.tileMap, 100, 100);
-        var kingSprite = cc.Sprite(res.blackKing);
+
+
+
+        var kingSprite = new cc.Sprite(res.blackKing);
         this.tileWidth = this.tileMap.getTileSize().width;
         this.tileHeight = this.tileMap.getTileSize().height;
         this.chessScale = this.tileWidth / kingSprite.getContentSize().width;
-        cc.setScale(this.chessScale);
-        var position = this.calculatePosition(0, 0);
+        kingSprite.setScale(this.chessScale);
+        var position = this.calculatePosition(2, 1);
         kingSprite.setPosition(position);
+//        kingSprite.setPosition(cc.winSize.width/2,cc.winSize.height/2);
+        kingSprite.setAnchorPoint(0.5,0.5);
+
+        this.mapNode.addChild(kingSprite,1);
+
+        this.mapNode.addChild(this.tileMap, -1);
+        this.addChild(this.mapNode);
+        cc.log("mapHeight",this.tileMap.height); 
+        this.mapNode.setTextureRect(cc.rect(0,0,this.tileMap.width,this.tileMap.height));
+        this.mapNode.setPosition(cc.winSize.width/2+mapWidth/2,cc.winSize.height/2+mapHeight/2);
+        this.mapNode.setAnchorPoint(0.5,0.5);
+
         return true;
     },
 
     calculatePosition: function (x, y) {
-        var topLeftX = this.tileMap.x + this.tileMap.width * this.tileWidth / 2;
-        var topLeftY = this.tileMap.y + this.tileMap.height * this.tileHeight / 2;
-        var resX = topLeftX + x * this.tileWidth;
-        var resY = topLeftY + y * this.tileWidth;
+        var topLeftX =  -this.tileMap.width/2 + this.tileWidth/2;
+        var topLeftY =  this.tileMap.height/2  - this.tileHeight/2;
+        //TODO: since row first, column follows, resX and resY must be interchanged.
+        var resX = topLeftX + (y-1) * this.tileWidth;
+        var resY = topLeftY - (x-1) * this.tileWidth;
         cc.log("topLeftY",topLeftY);
+        cc.log("resX",resX);
+        cc.log("resY",resY);
+        cc.log("cc.winSize.width/2",cc.winSize.width/2);
         return cc.p(resX, resY);
     },
 });
