@@ -30,6 +30,7 @@ var HelloWorldLayer = cc.Layer.extend({
     tileWidth: null,
     tileHeight: null,
     chessScale: null,
+    columnCount:8, 
     ctor: function () {
         //////////////////////////////
         // 1. super init first
@@ -57,12 +58,11 @@ var HelloWorldLayer = cc.Layer.extend({
         this.tileHeight = this.tileMap.getTileSize().height;
         this.chessScale = this.tileWidth / kingSprite.getContentSize().width;
         kingSprite.setScale(this.chessScale);
-        var position = this.calculatePosition(2, 1);
-        kingSprite.setPosition(position);
+        
 //        kingSprite.setPosition(cc.winSize.width/2,cc.winSize.height/2);
         kingSprite.setAnchorPoint(0.5,0.5);
 
-        this.mapNode.addChild(kingSprite,1);
+        this.mapNode.addChild(kingSprite,1,this.getTagFromXY(2,1));
 
         this.mapNode.addChild(this.tileMap, -1);
         this.addChild(this.mapNode);
@@ -71,9 +71,14 @@ var HelloWorldLayer = cc.Layer.extend({
         this.mapNode.setPosition(cc.winSize.width/2+mapWidth/2,cc.winSize.height/2+mapHeight/2);
         this.mapNode.setAnchorPoint(0.5,0.5);
 
+        this.chessMove(2,1,3,1);
+        this.chessMove(3,1,8,8); 
+
         return true;
     },
-
+    getTagFromXY: function(x,y){
+        return x*this.columnCount +y; 
+    }, 
     calculatePosition: function (x, y) {
         var topLeftX =  -this.tileMap.width/2 + this.tileWidth/2;
         var topLeftY =  this.tileMap.height/2  - this.tileHeight/2;
@@ -86,6 +91,13 @@ var HelloWorldLayer = cc.Layer.extend({
         cc.log("cc.winSize.width/2",cc.winSize.width/2);
         return cc.p(resX, resY);
     },
+
+    chessMove:function(x,y,newX,newY){
+        var chess = this.mapNode.getChildByTag(this.getTagFromXY(x,y)); 
+        var newPosition = this.calculatePosition(newX,newY); 
+        chess.setPosition(newPosition); 
+        chess.setTag(this.getTagFromXY(newX,newY)); 
+    }
 });
 
 var HelloWorldScene = cc.Scene.extend({
