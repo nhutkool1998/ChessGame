@@ -38,7 +38,8 @@ var res = {
     whiteKnight: "res/sprite/co vua/whiteKnight.png",
     whitePawn: "res/sprite/co vua/whitePawn.png",
     whiteQueen: "res/sprite/co vua/whiteQueen.png",
-    whiteRook: "res/sprite/co vua/whiteRook.png"
+    whiteRook: "res/sprite/co vua/whiteRook.png",
+    green: "res/green.png"
 };
 
 var g_resources = [];
