@@ -75,7 +75,7 @@
  }
  *
  */
-
+var WIDTH, HEIGHT;
 cc.game.onStart = function(){
     var sys = cc.sys;
     if(!sys.isNative && document.getElementById("cocosLoading")) //If referenced loading.js, please remove it
@@ -98,7 +98,13 @@ cc.game.onStart = function(){
     // cc.view.setOrientation(cc.ORIENTATION_PORTRAIT);
 
     // Setup the resolution policy and design resolution size
-    cc.view.setDesignResolutionSize(960, 640, cc.ResolutionPolicy.SHOW_ALL);
+    WIDTH = cc.view.getFrameSize().width;
+    HEIGHT = cc.view.getFrameSize().height;
+    cc.view.setDesignResolutionSize(WIDTH, HEIGHT, cc.ResolutionPolicy.SHOW_ALL);
+
+    cc.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~FRAME SIZE ~~~~~~~~~~~~~~~~~" + cc.view.getFrameSize().width + " " + cc.view.getFrameSize().height);
+    cc.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~VISIBLE SIZE ~~~~~~~~~~~~~~~~~" + cc.view.getVisibleSize().width + " " + cc.view.getVisibleSize().height);
+    cc.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~WIN SIZE ~~~~~~~~~~~~~~~~~" + cc.winSize.width + " " + cc.winSize.height);
 
     // The game will be resized when browser size change
     cc.view.resizeWithBrowserSize(true);

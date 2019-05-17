@@ -28,7 +28,7 @@ var CHESS_STATE = {
 };
 var SPRITE_TAG = {
    GREEN_BOX_TAG: 100
-}
+};
 var HelloWorldLayer = cc.Layer.extend({
    sprite: null,
    mapNode: null,
