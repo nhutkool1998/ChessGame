@@ -29,6 +29,18 @@ var CHESS_STATE = {
 var SPRITE_TAG = {
    GREEN_BOX_TAG: 100
 }
+var CHESS_TYPE = {
+   KING: "KING",
+   QUEEN: "QUEEN",
+   KNIGHT: "KNIGHT",
+   BISHOP: "BISHOP",
+   PAWN: "PAWN",
+   CASTLE: "CASTLE"
+}
+var PLAYER = {
+   BLACK: 0,
+   WHITE: 1
+}
 var HelloWorldLayer = cc.Layer.extend({
    sprite: null,
    mapNode: null,
@@ -42,10 +54,16 @@ var HelloWorldLayer = cc.Layer.extend({
    mapHeight: null,
    chessWidth: null,
    chessHeight: null,
+   topLeftX: null,
+   topLeftY: null,
+   logicChessboard: null,
+   turn: 0,
    ctor: function () {
       //////////////////////////////
       // 1. super init first
       this._super();
+      // this.logicChessboard = new LogicChessboard(); 
+
       this.mapNode = new cc.Sprite();
       var mapWidth, mapHeight;
       this.tileMap = cc.TMXTiledMap.create(res.chessMap);
@@ -53,7 +71,6 @@ var HelloWorldLayer = cc.Layer.extend({
       mapWidth = this.tileMap.width;
       this.mapWidth = mapWidth;
       this.mapHeight = mapHeight;
-      cc.log(this.tileMap);
       this.tileMap.setPosition(0, 0);
       this.tileMap.setAnchorPoint(0.5, 0.5);
 
@@ -61,50 +78,84 @@ var HelloWorldLayer = cc.Layer.extend({
       this.tileWidth = this.tileMap.getTileSize().width;
       this.tileHeight = this.tileMap.getTileSize().height;
       this.chessScale = this.tileWidth / tempSprite.getContentSize().width;
-      // kingSprite.setScale(this.chessScale);
 
-      //        kingSprite.setPosition(cc.winSize.width/2,cc.winSize.height/2);
-      // kingSprite.setAnchorPoint(0.5, 0.5);
-
-      // this.mapNode.addChild(kingSprite, 1, this.getTagFromXY(2, 1));
-      // this.scaleAllBy(1.5);
-      this.addChess(res.blackKing, cc.p(2, 1), "KING");
-      this.addChess(res.blackQueen, cc.p(3, 1), "QUEEN");
+      // this.addChess(res.blackKing, cc.p(2, 1), "KING");
+      // this.addChess(res.blackQueen, cc.p(3, 1), "QUEEN");
 
       this.mapNode.addChild(this.tileMap, 0);
       this.addChild(this.mapNode);
-      cc.log("mapHeight", this.tileMap.height);
       this.mapNode.setTextureRect(cc.rect(0, 0, this.tileMap.width, this.tileMap.height));
       this.mapNode.setPosition(cc.winSize.width / 2 + mapWidth / 2, cc.winSize.height / 2 + mapHeight / 2);
       this.mapNode.setAnchorPoint(0.5, 0.5);
       // this.chessMove(2, 1, 3, 1);
+      // this.scaleAllBy(2);
+      this.initChessboard();
       // this.chessMove(3, 1, 8, 8);
       this.initCodeForChessMoving();
 
-      // var drawingBox = new cc.Sprite(); 
-      //          drawingBox.setTextureRect(cc.rect(0,0,32,32)); 
-      //          // drawingBox.setScale(layerContainingChess.chessScale); 
-      //          // drawingBox.setTag(SPRITE_TAG.GREEN_BOX_TAG); 
-      //          drawingBox.setColor(0,255,0); 
-      //          // drawingBox.setOpacity(0); 
-      //          drawingBox.setPosition(cc.winSize.width / 2 + mapWidth / 2, cc.winSize.height / 2 + mapHeight / 2); 
-      //          this.addChild(drawingBox,100,SPRITE_TAG.GREEN_BOX_TAG); 
 
-      this.scaleAllBy(1);
+
       return true;
    },
    scaleAllBy: function (scale) {
       this.mapNode.setScale(scale);
-      this.chessScale *= scale;
-      this.tileHeight *= scale;
-      this.tileWidth *= scale;
+      this.chessScale = this.tileWidth / (this.tileWidth * scale);
+      this.tileHeight = this.tileMap.getTileSize().height * scale;
+      this.tileWidth = this.tileMap.getTileSize().width * scale;
       this.mapHeight *= scale;
       this.mapWidth *= scale;
       this.mapNode.setTextureRect(cc.rect(0, 0, this.tileMap.width * scale, this.tileMap.height * scale));
-      this.mapNode.setPosition(cc.winSize.width / 2 + this.mapHeight / 2, cc.winSize.height / 2 + this.mapHeight / 2);
-      this.tileMap.setScale(scale); 
+      var posX = cc.winSize.width / 2 + this.mapHeight / 2 + this.mapHeight / 2 * (scale - 1);
+      var posY = cc.winSize.height / 2 + this.mapWidth / 2 + this.mapWidth / 2 * (scale - 1);
+      this.mapNode.setPosition(posX, posY);
    },
-   addChess: function (sprite, position, type) {
+   initChessboard: function () {
+      this.addChess(res.whiteRook, cc.p(8, 1), CHESS_TYPE.CASTLE, PLAYER.WHITE);
+      this.addChess(res.whiteRook, cc.p(8, 8), CHESS_TYPE.CASTLE, PLAYER.WHITE);
+
+      this.addChess(res.whiteKnight, cc.p(8, 2), CHESS_TYPE.KNIGHT, PLAYER.WHITE);
+      this.addChess(res.whiteKnight, cc.p(8, 7), CHESS_TYPE.KNIGHT, PLAYER.WHITE);
+
+      this.addChess(res.whiteBishop, cc.p(8, 3), CHESS_TYPE.BISHOP, PLAYER.WHITE);
+      this.addChess(res.whiteBishop, cc.p(8, 6), CHESS_TYPE.BISHOP, PLAYER.WHITE);
+
+      this.addChess(res.whiteQueen, cc.p(8, 4), CHESS_TYPE.QUEEN, PLAYER.WHITE);
+      this.addChess(res.whiteKing, cc.p(8, 5), CHESS_TYPE.KING, PLAYER.WHITE);
+
+      //add pawns
+
+      for (var i = 1; i <= 8; ++i) {
+         this.addChess(res.whitePawn, cc.p(7, i), CHESS_TYPE.PAWN, PLAYER.WHITE);
+         this.addChess(res.blackPawn, cc.p(2, i), CHESS_TYPE.PAWN, PLAYER.BLACK);
+      }
+
+      this.addChess(res.blackRook, cc.p(1, 1), CHESS_TYPE.CASTLE, PLAYER.BLACK);
+      this.addChess(res.blackRook, cc.p(1, 8), CHESS_TYPE.CASTLE, PLAYER.BLACK);
+
+      this.addChess(res.blackKnight, cc.p(1, 2), CHESS_TYPE.KNIGHT, PLAYER.BLACK);
+      this.addChess(res.blackKnight, cc.p(1, 7), CHESS_TYPE.KNIGHT, PLAYER.BLACK);
+
+      this.addChess(res.blackBishop, cc.p(1, 3), CHESS_TYPE.BISHOP, PLAYER.BLACK);
+      this.addChess(res.blackBishop, cc.p(1, 6), CHESS_TYPE.BISHOP, PLAYER.BLACK);
+
+      this.addChess(res.blackQueen, cc.p(1, 4), CHESS_TYPE.QUEEN, PLAYER.BLACK);
+      this.addChess(res.blackKing, cc.p(1, 5), CHESS_TYPE.KING, PLAYER.BLACK);
+
+   },
+   addChess: function (sprite, position, type, player) {
+      //if the logic chess board is yet to be ialized, initialize it
+      if (this.logicChessboard == null) {
+         this.logicChessboard = {};
+         for (var i = 1; i <= 8; ++i) {
+            this.logicChessboard[i] = {};
+            for (var j = 1; j <= 8; ++j) {
+               this.logicChessboard[i][j] = -1;
+            }
+         }
+      }
+      this.logicChessboard[position.x][position.y] = {};
+      this.logicChessboard[position.x][position.y][type] = player;
+
       var newChess = new cc.Sprite(sprite);
       newChess.chessType = type;
       newChess.stateTag = CHESS_STATE.NOT_SELECTED;
@@ -117,12 +168,15 @@ var HelloWorldLayer = cc.Layer.extend({
       newChess.setPosition(chessPos);
       this.mapNode.addChild(newChess, 2, this.getTagFromXY(position.x, position.y));
 
+      // this.logicChessboard.addChess(type,position); 
+
       var greenBox = new cc.Sprite(res.green, cc.rect(0, 0, this.chessWidth, this.chessHeight));
       // greenBox.setTextureRect(cc.rect(0,0,32,32)); 
       // greenBox.setColor(new cc.Color(255,255,255)); 
+
       greenBox.setOpacity(180);
       greenBox.setPosition(chessPos);
-      newChess.greenBox= greenBox; 
+      newChess.greenBox = greenBox;
       greenBox.setVisible(false);
       this.mapNode.addChild(greenBox, 1);
    },
@@ -130,11 +184,11 @@ var HelloWorldLayer = cc.Layer.extend({
       return x * this.columnCount + y;
    },
    calculatePosition: function (x, y) {
-      var topLeftX = -this.mapWidth / 2 + this.tileWidth / 2;
-      var topLeftY = this.mapHeight / 2 - this.tileHeight / 2;
+      topLeftX = -this.mapWidth / 2 + this.tileWidth / 2;
+      topLeftY = this.mapHeight / 2 - this.tileHeight / 2;
       //TODO: since row first, column follows, resX and resY must be interchanged.
       var resX = topLeftX + (y - 1) * this.tileWidth;
-      var resY = topLeftY - (x - 1) * this.tileWidth;
+      var resY = topLeftY - (x - 1) * this.tileHeight;
       // cc.log("topLeftY", topLeftY);
       // cc.log("resX", resX);
       // cc.log("resY", resY);
@@ -142,6 +196,7 @@ var HelloWorldLayer = cc.Layer.extend({
       return cc.p(resX, resY);
    },
    calculateScreenPosition: function (x, y) {
+      // cc.log("calculateScreenPosition", x, y);
       //reduce x and y, so that it would fit better
       var topLeftX = -this.mapWidth / 2;
       //+ this.tileWidth / 2;
@@ -152,7 +207,7 @@ var HelloWorldLayer = cc.Layer.extend({
       resX = -y + topLeftY;
       resX = Math.floor(resX / this.tileWidth) + 1;
       resY = x - topLeftX;
-      resY = Math.floor(resY / this.tileWidth) + 1;
+      resY = Math.floor(resY / this.tileHeight) + 1;
       return cc.p(resX, resY);
    },
    getChessAtChessboardPosition: function (x, y) {
@@ -161,12 +216,45 @@ var HelloWorldLayer = cc.Layer.extend({
          return chess;
       return null;
    },
-   chessMove: function (x, y, newX, newY) {
+   removeChess: function (chess) {
+      chess.greenBox.removeFromParent(true);
+      chess.removeFromParent(true);
+   },
+   isValidMove: function (chess, x, y, newX, newY, logicChessboard, player) {
+      // var chess = this.getChessAtChessboardPosition(x,y); 
+      //if the player pick his chess pieces, not his opponent's
+      if (x == newX && y == newY)
+         return false; 
+      if (logicChessboard[x][y][chess.chessType] != player)
+         return false;
+      return true; 
+      return WesternChess.CheckChessRules(x, y, newX, newY, chess.chessType, logicChessboard);
+   },
+   chessMove: function (x, y, newX, newY, player) {
       var chess = this.getChessAtChessboardPosition(x, y);
       var newPosition = this.calculatePosition(newX, newY);
+      var chessDes = this.getChessAtChessboardPosition(newX, newY);
+      cc.log("chessDes", chessDes);
+      cc.log("ChessMove player",player); 
+      if (!this.isValidMove(chess, x, y, newX, newY, this.logicChessboard, player)) {
+         cc.log("not valid move");
+         return;
+      }
+      // if the destination contains a chess piece
+      if (chessDes != null) {
+         cc.log("chessDes.type", chessDes.chessType);
+         this.removeChess(chessDes);
+      }
+      this.logicChessboard[x][y] = -1;
+      this.logicChessboard[newX][newY] = {}; 
+      this.logicChessboard[newX][newY][chess.chessType] = player;
+
       chess.setPosition(newPosition);
       chess.setTag(this.getTagFromXY(newX, newY));
-      chess.greenBox.setPosition(newPosition); 
+      chess.greenBox.setPosition(newPosition);
+      this.turn = this.turn +1
+      this.turn %=2; 
+
    },
 
    getBoardPositionFromTag: function (tag) {
@@ -182,7 +270,7 @@ var HelloWorldLayer = cc.Layer.extend({
       // var position = cc.p(position1.x - target.mapNode.x,position1.y-target.mapNode.y); 
       var stillInChessboard = true;
       var clickPosition = target.calculateScreenPosition(position.x, position.y);
-      cc.log("clickPosition", clickPosition.x, clickPosition.y);
+      // cc.log("clickPosition", clickPosition.x, clickPosition.y);
       var isValidPosition = function (position) {
          if (position.x <= 0 || position.y <= 0)
             return false;
@@ -193,24 +281,33 @@ var HelloWorldLayer = cc.Layer.extend({
 
       if (isValidPosition(clickPosition) && target.selectedChess == null) {
          target.selectedChess = target.getChessAtChessboardPosition(clickPosition.x, clickPosition.y);
+         cc.log("target.selectedChess ",target.selectedChess ); 
          // target.selectedChess.setScale(target.selectedChess.getScale() +0.15); 
-         if (target.selectedChess != null){
-            target.selectedChess.greenBox.setVisible(true); 
-            var actionZoom = cc.scaleBy(0.2,1.15); 
-            target.selectedChess.runAction(cc.sequence(actionZoom,actionZoom.reverse()));
+         if (target.selectedChess != null) {
+            cc.log("target.logicChessboard[clickPosition.x][clickPosition.y][target.selectedChess.chessType]",target.logicChessboard[clickPosition.x][clickPosition.y][target.selectedChess.chessType]); 
+            cc.log("turn",target.turn); 
+            var isRightTurn = target.turn == target.logicChessboard[clickPosition.x][clickPosition.y][target.selectedChess.chessType];
+            if (!isRightTurn) {
+               target.selectedChess = null;
+               return;
+            }
+            target.selectedChess.greenBox.setVisible(true);
+            var actionZoom = cc.scaleBy(1, 1.15);
+            target.selectedChess.runAction(cc.sequence(actionZoom, actionZoom.reverse()));
          }
          return;
       }
-      cc.log("onUserMoveChess, selectedChess", target.selectedChess);
-      if (stillInChessboard && target.selectedChess != null) {
+      //   cc.log("onUserMoveChess, selectedChess", target.selectedChess);
+      if (isValidPosition(clickPosition) && target.selectedChess != null) {
          // target.selectedChess.setScale(target.selectedChess.getScale() - 0.15); 
          var oldPos = target.getBoardPositionFromTag(target.selectedChess.getTag());
-         cc.log(oldPos.x, oldPos.y, "oldPos");
+         //   cc.log(oldPos.x, oldPos.y, "oldPos");
          var newPos = target.calculateScreenPosition(position.x, position.y);
-         cc.log("newPos", newPos.x, newPos.y, "newPos");
-         target.chessMove(oldPos.x, oldPos.y, newPos.x, newPos.y);
+         //  cc.log("newPos", newPos.x, newPos.y, "newPos");
+         target.chessMove(oldPos.x, oldPos.y, newPos.x, newPos.y, target.turn);
+         // target.turn = (target.turn + 1) % 2;
 
-         target.selectedChess.greenBox.setVisible(false); 
+         target.selectedChess.greenBox.setVisible(false);
          target.selectedChess = null;
       }
       //var layerContainingChess = target.getParent().getParent(); 
