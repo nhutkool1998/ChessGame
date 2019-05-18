@@ -22,25 +22,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-var CHESS_STATE = {
-   SELECTED: 0,
-   NOT_SELECTED: 1
-};
-var SPRITE_TAG = {
-   GREEN_BOX_TAG: 100
-}
-var CHESS_TYPE = {
-   KING: "KING",
-   QUEEN: "QUEEN",
-   KNIGHT: "KNIGHT",
-   BISHOP: "BISHOP",
-   PAWN: "PAWN",
-   CASTLE: "CASTLE"
-}
-var PLAYER = {
-   BLACK: 0,
-   WHITE: 1
-}
+
 var HelloWorldLayer = cc.Layer.extend({
    sprite: null,
    mapNode: null,
@@ -149,7 +131,7 @@ var HelloWorldLayer = cc.Layer.extend({
          for (var i = 1; i <= 8; ++i) {
             this.logicChessboard[i] = {};
             for (var j = 1; j <= 8; ++j) {
-               this.logicChessboard[i][j] = -1;
+               this.logicChessboard[i][j] = PLAYER.EMPTY;
             }
          }
       }
@@ -220,15 +202,15 @@ var HelloWorldLayer = cc.Layer.extend({
       chess.greenBox.removeFromParent(true);
       chess.removeFromParent(true);
    },
-   isValidMove: function (chess, x, y, newX, newY, logicChessboard, player) {
+   isValidMove: function (chess, x, y, newX, newY, logicChessboard, turn) {
       // var chess = this.getChessAtChessboardPosition(x,y); 
       //if the player pick his chess pieces, not his opponent's
       if (x == newX && y == newY)
          return false; 
+      var player = (turn%2); 
       if (logicChessboard[x][y][chess.chessType] != player)
          return false;
-      return true; 
-      return WesternChess.CheckChessRules(x, y, newX, newY, chess.chessType, logicChessboard);
+      return WesternChess.CheckChessRules(x, y, newX, newY, chess.chessType, logicChessboard,turn);
    },
    chessMove: function (x, y, newX, newY, player) {
       var chess = this.getChessAtChessboardPosition(x, y);
@@ -236,7 +218,7 @@ var HelloWorldLayer = cc.Layer.extend({
       var chessDes = this.getChessAtChessboardPosition(newX, newY);
       cc.log("chessDes", chessDes);
       cc.log("ChessMove player",player); 
-      if (!this.isValidMove(chess, x, y, newX, newY, this.logicChessboard, player)) {
+      if (!this.isValidMove(chess, x, y, newX, newY, this.logicChessboard, this.turn)) {
          cc.log("not valid move");
          return;
       }
@@ -245,15 +227,15 @@ var HelloWorldLayer = cc.Layer.extend({
          cc.log("chessDes.type", chessDes.chessType);
          this.removeChess(chessDes);
       }
-      this.logicChessboard[x][y] = -1;
+      this.logicChessboard[x][y] = PLAYER.EMPTY;
       this.logicChessboard[newX][newY] = {}; 
       this.logicChessboard[newX][newY][chess.chessType] = player;
 
       chess.setPosition(newPosition);
       chess.setTag(this.getTagFromXY(newX, newY));
       chess.greenBox.setPosition(newPosition);
-      this.turn = this.turn +1
-      this.turn %=2; 
+      this.turn = this.turn +1; 
+      // this.turn %=2; 
 
    },
 
@@ -286,7 +268,7 @@ var HelloWorldLayer = cc.Layer.extend({
          if (target.selectedChess != null) {
             cc.log("target.logicChessboard[clickPosition.x][clickPosition.y][target.selectedChess.chessType]",target.logicChessboard[clickPosition.x][clickPosition.y][target.selectedChess.chessType]); 
             cc.log("turn",target.turn); 
-            var isRightTurn = target.turn == target.logicChessboard[clickPosition.x][clickPosition.y][target.selectedChess.chessType];
+            var isRightTurn = (target.turn%2) == target.logicChessboard[clickPosition.x][clickPosition.y][target.selectedChess.chessType];
             if (!isRightTurn) {
                target.selectedChess = null;
                return;
@@ -304,7 +286,8 @@ var HelloWorldLayer = cc.Layer.extend({
          //   cc.log(oldPos.x, oldPos.y, "oldPos");
          var newPos = target.calculateScreenPosition(position.x, position.y);
          //  cc.log("newPos", newPos.x, newPos.y, "newPos");
-         target.chessMove(oldPos.x, oldPos.y, newPos.x, newPos.y, target.turn);
+         var currentPlayer = target.turn%2; 
+         target.chessMove(oldPos.x, oldPos.y, newPos.x, newPos.y, currentPlayer);
          // target.turn = (target.turn + 1) % 2;
 
          target.selectedChess.greenBox.setVisible(false);

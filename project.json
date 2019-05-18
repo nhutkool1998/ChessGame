@@ -13,7 +13,7 @@
 
     "jsList" : [
         "src/resource.js",
-        "src/app.js",
-        "src/chess_rules.js"
+        "src/chess_rules.js",        
+        "src/app.js"
     ]
 }
