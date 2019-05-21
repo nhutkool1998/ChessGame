@@ -13,7 +13,9 @@
 
     "jsList" : [
         "src/resource.js",
+        "src/enum.js",
         "src/chess_rules.js",        
+        "src/chessClass.js",
         "src/app.js"
     ]
 }

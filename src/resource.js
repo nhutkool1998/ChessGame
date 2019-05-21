@@ -32,15 +32,14 @@ var res = {
     blackKnight: "res/sprite/co vua/blackKnight.png",
     blackPawn : "res/sprite/co vua/blackPawn.png",
     blackQueen : "res/sprite/co vua/blackQueen.png",
-    blackRook: "res/sprite/co vua/blackRook.png",
+    blackCastle: "res/sprite/co vua/blackRook.png",
     whiteBishop: "res/sprite/co vua/whiteBishop.png",
     whiteKing: "res/sprite/co vua/whiteKing.png",
     whiteKnight: "res/sprite/co vua/whiteKnight.png",
     whitePawn: "res/sprite/co vua/whitePawn.png",
     whiteQueen: "res/sprite/co vua/whiteQueen.png",
-    whiteRook: "res/sprite/co vua/whiteRook.png",
+    whiteCastle: "res/sprite/co vua/whiteRook.png",
     green: "res/green.png", 
-
     niceChessboard: "res/niceTileMap.png"
 };
 
