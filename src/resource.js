@@ -39,7 +39,9 @@ var res = {
     whitePawn: "res/sprite/co vua/whitePawn.png",
     whiteQueen: "res/sprite/co vua/whiteQueen.png",
     whiteRook: "res/sprite/co vua/whiteRook.png",
-    green: "res/green.png"
+    green: "res/green.png", 
+
+    niceChessboard: "res/niceTileMap.png"
 };
 
 var g_resources = [];

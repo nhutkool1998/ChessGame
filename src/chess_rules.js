@@ -52,15 +52,20 @@ _CheckChessRules[CHESS_TYPE.CASTLE] = function(x, y, newX, newY, logicChessboard
     if (!isHorizontal && !isVertical)
         return false; 
     if (isHorizontal){
-        var sign = y < newY? 1 : -1; 
-        for (var i = y; i > 0 && i <9 && i != newY; i + sign){
+        var sign = (newY-y)/Math.abs(newY-y); 
+        // y + x*sign = newY 
+        // x*sign = newY -y
+        for (var i = y+sign; i > 0 && i <9 && i != newY; i += sign){
+            cc.log("horizontal",x,i); 
             if (logicChessboard[x][i] != PLAYER.EMPTY)
                 return false; 
         }
     }
     if (isVertical){
         var sign = x < newX? 1 : -1; 
-        for (var i = x; x > 0 && x <9 && x != newX; i + sign){
+        for (var i = x+sign; i > 0 && i <9 && i != newX; i += sign){
+            cc.log("vertical",i,y,logicChessboard[i][y]); 
+
             if (logicChessboard[i][y] != PLAYER.EMPTY)
                 return false; 
         }
@@ -93,14 +98,14 @@ _CheckChessRules[CHESS_TYPE.BISHOP] = function(x, y, newX, newY, logicChessboard
     var signX = (newX-x)/Math.abs(x-newX); 
     var signY = (newY - y)/Math.abs(y-newY); 
     var curX,curY; 
-    for (var i = 1; i <=8;++i){
+    for (var i = 1  ; i <=8;++i){
         curX = x + signX*i; 
         curY = y + signY*i; 
         if (!checkBoundary(curX,curY))
             break; 
         if (curX == newX || curY == newY)
             break; 
-        if (logicChessboard[i][y] != PLAYER.EMPTY)
+        if (logicChessboard[curX][curY] != PLAYER.EMPTY)
             return false; 
     }
     return true; 
@@ -125,11 +130,22 @@ _CheckChessRules[CHESS_TYPE.PAWN] = function(x,y,newX,newY,logicChessboard,turn)
     var deltaX,deltaY; 
     deltaX = Math.abs(newX -x); 
     deltaY = Math.abs(newY - y); 
-    
-    //if can kill 
+    //pawn cannot go backward 
+    var player = turn%2; 
+    if (player == PLAYER.WHITE){
+        if (newX > x)
+            return false; 
+    }
+    if (player == PLAYER.BLACK){
+        if (newX <x)
+            return false; 
+    }
+
+    //if can kill, then crossline is ok¡
     if (deltaX == 1 && Math.abs(deltaY) ==1){
         var oppositePlayer = (turn+1)%2
-        if (logicChessboard[newX][newY][CHESS_TYPE.PAWN] == oppositePlayer)
+        var chessTypeAtDestination = Object.keys(logicChessboard[newX][newY])[0];
+        if (logicChessboard[newX][newY][chessTypeAtDestination] == oppositePlayer)
             return true; 
     }
     //if cannot kill and the position is occupied, then return false; 
