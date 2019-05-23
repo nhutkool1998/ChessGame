@@ -20,31 +20,21 @@ var PLAYER = {
 };
 
 WesternChessRule = {};
+var willnotKillTeammate = function () {
+    this._checkRule = function (x, y, newX, newY, logicChessboard) {
+        cc.log("will NOT kill team mate");
+        if (logicChessboard[newX][newY] == PLAYER.EMPTY)
+            return true;
+        var key = Object.keys(logicChessboard[newX][newY])[0];
+        var type = Object.keys(logicChessboard[x][y])[0]
+        if (logicChessboard[x][y][type] != logicChessboard[newX][newY][key]) {
+            cc.log("will NOT kill team mate")
+            return true;
+        }
+        cc.log("WILL kill team mate")
 
-function Decorator(decoratee) {
-    this.decoratee = decoratee;
-    this._checkRule = null;
-    this.checkRule = function (x, y, newX, newY, logicChessboard) {
-        cc.log("this.decoratee", this.decoratee);
-        return (this._checkRule(x, y, newX, newY, logicChessboard, turn))
+        return false;
     }
-};
-
-var willnotKillTeammate = {};
-
-willnotKillTeammate._checkRule = function (x, y, newX, newY, logicChessboard) {
-    cc.log("will NOT kill team mate");
-    if (logicChessboard[newX][newY] == PLAYER.EMPTY)
-        return true;
-    var key = Object.keys(logicChessboard[newX][newY])[0];
-    var type = Object.keys(logicChessboard[x][y])[0]
-    if (logicChessboard[x][y][type] != logicChessboard[newX][newY][key]) {
-        cc.log("will NOT kill team mate")
-        return true;
-    }
-    cc.log("WILL kill team mate")
-
-    return false;
 }
 
 var checkBoundary = function (x, y) {
@@ -144,61 +134,69 @@ WesternChessRule[CHESS_TYPE.QUEEN] = function () {
 };
 
 WesternChessRule[CHESS_TYPE.PAWN] = function () {
-    this._checkRule = function (x, y, newX, newY, logicChessboard, turn) {
-        cc.log("x,y,newX,newY", x, y, newX, newY);
-        var deltaX, deltaY;
-        deltaX = Math.abs(newX - x);
-        deltaY = Math.abs(newY - y);
-        //pawn cannot go backward 
-        var player = turn % 2;
-        if (player == PLAYER.WHITE) {
-            cc.log("cannot go backward - white")
-            if (newX > x)
-                return false;
-        }
-        if (player == PLAYER.BLACK) {
-            cc.log("cannot go backward check - black")
-            if (newX < x) {
-                cc.log("cannot go backward - black")
+    // this.
+    this._checkRule = function (x, y, newX, newY, logicChessboard, turn,chessObject) {
+        __checkRule = function (x, y, newX, newY, logicChessboard, turn,chessObject) {
+            cc.log("x,y,newX,newY", x, y, newX, newY);
+            var deltaX, deltaY;
+            deltaX = Math.abs(newX - x);
+            deltaY = Math.abs(newY - y);
+            //pawn cannot go backward 
+            var player = turn % 2;
+            if (player == PLAYER.WHITE) {
+                cc.log("cannot go backward - white")
+                if (newX > x)
+                    return false;
+            }
+            if (player == PLAYER.BLACK) {
+                cc.log("cannot go backward check - black")
+                if (newX < x) {
+                    cc.log("cannot go backward - black")
+                    return false;
+                }
+            }
+    
+            //if can kill, then crossline is ok¡
+            var chessTypeAtDestination = Object.keys(logicChessboard[newX][newY])[0];
+    
+            if (deltaX == 1 && Math.abs(deltaY) == 1) {
+                var oppositePlayer = (turn + 1) % 2
+                if (logicChessboard[newX][newY][chessTypeAtDestination] == oppositePlayer)
+                    return true;
+            }
+            //if cannot kill and the position is occupied, then return false; 
+            if (logicChessboard[newX][newY] != PLAYER.EMPTY) {
+                cc.log("not empty cell - cannot kill")
+    
                 return false;
             }
-        }
-
-        //if can kill, then crossline is ok¡
-        var chessTypeAtDestination = Object.keys(logicChessboard[newX][newY])[0];
-
-        if (deltaX == 1 && Math.abs(deltaY) == 1) {
-            var oppositePlayer = (turn + 1) % 2
-            if (logicChessboard[newX][newY][chessTypeAtDestination] == oppositePlayer)
-                return true;
-        }
-        //if cannot kill and the position is occupied, then return false; 
-        if (logicChessboard[newX][newY] != PLAYER.EMPTY) {
-            cc.log("not empty cell - cannot kill")
-        
-            return false;
-        }
-
-        var firstTurn = false;
-        if (turn % 2 == PLAYER.WHITE && x == 7) {
-            firstTurn = true;
-        }
-        if (turn % 2 == PLAYER.BLACK && x == 2) {
-            firstTurn = true;
-        }
-        if (firstTurn) {
-            cc.log("deltaY",deltaY,"deltaX",deltaX)
-            if (deltaY != 0)
-                return false;
-            if (deltaX > 2)
-            {
-                cc.log("deltaX > 2")
-                return false;
+    
+            var firstTurn = false;
+            if (turn % 2 == PLAYER.WHITE && x == 7) {
+                firstTurn = true;
             }
-        } else {
-            if (deltaY > 0 || deltaX > 1)
-                return false;
+            if (turn % 2 == PLAYER.BLACK && x == 2) {
+                firstTurn = true;
+            }
+            if (firstTurn) {
+                cc.log("deltaY", deltaY, "deltaX", deltaX)
+                if (deltaY != 0)
+                    return false;
+                if (deltaX > 2) {
+                    cc.log("deltaX > 2")
+                    return false;
+                }
+            } else {
+                if (deltaY > 0 || deltaX > 1)
+                    return false;
+            }
+            return true;
         }
-        return true;
+        var result = __checkRule(x, y, newX, newY, logicChessboard, turn,chessObject,chessObject);
+        if (result){
+            if (newX == 1 || newX == 8)
+                showPromoteDialog(chessObject);
+        }
+        return result; 
     }
 }

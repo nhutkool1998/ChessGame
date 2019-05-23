@@ -22,7 +22,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-
+var isChessboardTouchable = true; 
 var HelloWorldLayer = cc.Layer.extend({
    logicChessboard: null,
    mapNode: null,
@@ -135,7 +135,7 @@ var HelloWorldLayer = cc.Layer.extend({
       var img = "res/green.png";
       // cc.log(img);  
       // this.loadTextures(img,img,img); 
-      var newChess = new MyChess(type,player);
+      var newChess = new MyChess(type,player,this.logicChessboard);
       // var newChess = new ccui.Button(img,img,img,"");
       // var newChess = new cc.Sprite(sprite); 
       // newChess.setContentSize(50,50); 
@@ -255,6 +255,8 @@ var HelloWorldLayer = cc.Layer.extend({
    onUserMoveChess: function (event) {
       if (event.getButton() != cc.EventMouse.BUTTON_LEFT)
          return;
+      if (!isChessboardTouchable)
+         return; 
       //TARGET here is the layer itself; 
       var target = event.getCurrentTarget();
       var position = event.getLocation();
@@ -285,8 +287,8 @@ var HelloWorldLayer = cc.Layer.extend({
                return;
             }
             target.selectedChess.greenBox.setVisible(true);
-            var actionZoom = cc.scaleBy(0.1, 1.15);
-            target.selectedChess.runAction(cc.sequence(actionZoom, actionZoom.reverse()));
+            // var actionZoom = cc.scaleBy(0.1, 1.15);
+            // target.selectedChess.runAction(cc.sequence(actionZoom, actionZoom.reverse()));
          }  
          return;
       }
