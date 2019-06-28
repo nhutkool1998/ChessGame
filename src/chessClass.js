@@ -3,6 +3,7 @@ var MyChess = ccui.Button.extend({
     chessRule: null,
     player: null,
     logicChessboard: null,
+    promoted: false, 
     ctor: function (chessType, player, logicChessboard) {
         var playerString;
         if (logicChessboard != null)
@@ -19,7 +20,7 @@ var MyChess = ccui.Button.extend({
         // _sprite = new cc.Sprite();
         this.setPressedActionEnabled(true);
 
-        // cc.log("__________~~~~~~~~______img",img);
+        // //cc.log("__________~~~~~~~~______img",img);
 
         // this.setType(chessType, player);
         this._setRule(chessType);
@@ -43,7 +44,8 @@ var MyChess = ccui.Button.extend({
     setImage: function (img) {
         this.loadTextures(img, img, img);
     },
-    setType: function (chessType, player) {
+    setType: function (chessType) {
+       var player = this.player; 
         this.chessType = chessType;
         var x = Math.floor(this.tag / 13);
         var y = this.tag % 13;
@@ -56,14 +58,28 @@ var MyChess = ccui.Button.extend({
         if (player == PLAYER.WHITE)
             playerString = "white";
         var img = res[playerString + chessType];
-        cc.log("________________img", player, playerString + chessType, img);
-        // cc.log(img);
+        //cc.log("________________img", player, playerString + chessType, img);
+        // //cc.log(img);
         this.loadTextures(img, img, img, ccui.Widget.LOCAL_TEXTURE);
     }
 });
-showPromoteDialog = function (pawn) {
-    var dialog = new PromoteDialog(pawn);
+showPromoteDialog = function (chess,killedChess,demoteStrategy) {
+    if (chess.promoted)
+        return; 
+    var killedChessNull = false; 
+    if (killedChess == undefined)
+    {
+      //  killedChess = new MyChess(CHESS_TYPE.QUEEN,(chess.player+1)%2,chess.logicChessboard); 
+        //killedChess.setVisible(false); 
+        //cc.director.getRunningScene().addChild(killedChess, -1);
+        killedChess = []; 
+        killedChess.chessType = CHESS_TYPE.QUEEN; 
+    }
+    var dialog = new PromoteDialog(chess,killedChess,demoteStrategy);
     cc.director.getRunningScene().addChild(dialog, 100);
+    if (killedChessNull)
+        killedChess.removeFromParent(true); 
+
     // chessNode = new MyChess("Queen",PLAYER.BLACK); 
     // chessNode.setAnchorPoint(0.5,0.5);
     // chessNode.setPosition(cc.winSize.width/2,cc.winSize.height/2); 
@@ -71,16 +87,18 @@ showPromoteDialog = function (pawn) {
 }
 
 var PromoteDialog = cc.Layer.extend({
-    pawn: null,
+    chess: null,
     notifNode: null,
     BG_TAG: 0,
     LB_TAG: 1,
     BUTTON_TAG: 2,
     transparentBackground: null,
     chessNode: null,
-    ctor: function (pawn) {
+    demoteStrategy:null, 
+    ctor: function (chess,killedChess,demoteStrategy) {
         this._super();
-        this.pawn = pawn;
+        this.chess = chess;
+        this.demoteStrategy = demoteStrategy; 
         this.notifNode = new cc.Node();
         isChessboardTouchable = false
         this.transparentBackground = new ccui.Button(res.green, res.green, res.green);
@@ -94,9 +112,10 @@ var PromoteDialog = cc.Layer.extend({
         var bg = new cc.Sprite(res.notif);
         // bg.setScale(3); 
         this.notifNode.addChild(bg, 0, this.BG_TAG);
-        bg.setPosition(0, 0);
-        var lb = cc.LabelTTF.create('Promote to:', 'Arial', 16, bg.getContentSize(), cc.TEXT_ALIGNMENT_CENTER);
-        lb.setPosition(0, 30);
+        bg.setPosition(0, 0.5);
+
+        bg.setScale(2); 
+        var lb = cc.LabelTTF.create('Promote to:', 'Arial', 16, 50, cc.TEXT_ALIGNMENT_CENTER);
         lb.setColor(new cc.Color(165, 42, 42));
         this.notifNode.addChild(lb, 1, this.LB_TAG);
         lb.setAnchorPoint(0.5, 0.5);
@@ -108,42 +127,49 @@ var PromoteDialog = cc.Layer.extend({
         var i = 0;
         for (var c in CHESS_TYPE) {
             if (CHESS_TYPE.hasOwnProperty(c)) {
-                if (CHESS_TYPE[c] != CHESS_TYPE.KING && CHESS_TYPE[c] != CHESS_TYPE.PAWN) {
-                    if (CHESS_PRIORITY[pawn.chessType] < CHESS_PRIORITY[[CHESS_TYPE[c]]]) {
-                        var tempChess = new MyChess(CHESS_TYPE[c], pawn.player);
-                        // cc.log("______tempChess",tempChess,"c",c);
-                        tempChess.setAnchorPoint(0, 0);
+                if (CHESS_TYPE[c] != CHESS_TYPE.KING && CHESS_TYPE[c] != CHESS_TYPE.chess) {
+                    if (CHESS_PRIORITY[chess.chessType] < CHESS_PRIORITY[[CHESS_TYPE[c]]] && 
+                        CHESS_PRIORITY[killedChess.chessType] >= CHESS_PRIORITY[[CHESS_TYPE[c]]]) {
+                        var tempChess = new MyChess(CHESS_TYPE[c], chess.player);
+                        // //cc.log("______tempChess",tempChess,"c",c);
+                        tempChess.setAnchorPoint(0.5, 0.5);
                         tempChess.setScale(2);
-                        tempChess.setPosition(100 * i, 0);
+                        tempChess.setPosition(100 * i+50, 50);
                         tempChess.setPressedActionEnabled(true);
-                        tempChess.addClickEventListener(this.onPromotionButtonClicked.bind(this, this.pawn, CHESS_TYPE[c], tempChess));
+                        tempChess.addClickEventListener(this.onPromotionButtonClicked.bind(this, this.chess, CHESS_TYPE[c], tempChess));
                         i += 1;
                         this.chessNode.addChild(tempChess, 1);
                     }
                 }
             }
         }
-        this.chessNode.setContentSize(400, 100);
+        this.chessNode.setContentSize(i*100, 100);
         this.notifNode.addChild(this.chessNode, 3);
         this.chessNode.setAnchorPoint(0.5, 0.5);
-        // this.chessNode.setPosition(cc.winSize.width/2,cc.winSize.height/2); 
-        // cc.director.getRunningScene().addChild(this.chessNode,1001); 
+       
+
+        lb.setPosition(0, this.chessNode.height/2);
+
+
         this.chessNode.setPosition(0, 0);
         this.addChild(this.notifNode);
+
+        if (this.demoteStrategy) 
+            this.demoteStrategy.showDescription(this,this.chess.chessType); 
     },
-    onPromotionButtonClicked: function (pawn, type, obj) {
-        // var p = pawn.getPosition(); 
-        // var parent = pawn.getParent();
-        // var newChess = new MyChess(type,pawn.player); 
-        // pawn.removeFromParent(true); 
-        // newChess.setPosition(p); 
-        // parent.addChild(newChess,1); 
-        var action0 = cc.ScaleTo(0.3, 1.1, 1.1);
-        var action1 = cc.ScaleTo(0.3, 0.99, 0.99);
-        var seq = cc.Sequence(action0, action1);
-        if (seq)
-            obj.runAction(seq);
-        pawn.setType(type, pawn.player);
+    onPromotionButtonClicked: function (chess, type, obj) {
+       
+        // var action0 = cc.ScaleTo(0.3, 1.1, 1.1);
+        // var action1 = cc.ScaleTo(0.3, 0.99, 0.99);
+        // var seq = cc.sequence(action0, action1);
+        // if (seq)
+        //     obj.runAction(seq);
+        if (this.demoteStrategy)
+            this.demoteStrategy.execute(type,chess.player); 
+        chess.setType(type, chess.player);
+        chess.promoted= true; 
+
+        
         this.removeFromParent(true);
     },
     onExit: function () {

@@ -30,16 +30,16 @@ var PLAYER = {
 WesternChessRule = {};
 var willnotKillTeammate = function () {
     this._checkRule = function (x, y, newX, newY, logicChessboard) {
-        cc.log("will NOT kill team mate");
+        //cc.log("will NOT kill team mate");
         if (logicChessboard[newX][newY] == PLAYER.EMPTY)
             return true;
         var key = Object.keys(logicChessboard[newX][newY])[0];
         var type = Object.keys(logicChessboard[x][y])[0]
         if (logicChessboard[x][y][type] != logicChessboard[newX][newY][key]) {
-            cc.log("will NOT kill team mate")
+            //cc.log("will NOT kill team mate")
             return true;
         }
-        cc.log("WILL kill team mate")
+        //cc.log("WILL kill team mate")
 
         return false;
     }
@@ -63,7 +63,7 @@ WesternChessRule[CHESS_TYPE.CASTLE] = function () {
             // y + x*sign = newY 
             // x*sign = newY -y
             for (var i = y + sign; i > 0 && i < 9 && i != newY; i += sign) {
-                cc.log("horizontal", x, i);
+                //cc.log("horizontal", x, i);
                 if (logicChessboard[x][i] != PLAYER.EMPTY)
                     return false;
             }
@@ -71,7 +71,7 @@ WesternChessRule[CHESS_TYPE.CASTLE] = function () {
         if (isVertical) {
             var sign = x < newX ? 1 : -1;
             for (var i = x + sign; i > 0 && i < 9 && i != newX; i += sign) {
-                cc.log("vertical", i, y, logicChessboard[i][y]);
+                //cc.log("vertical", i, y, logicChessboard[i][y]);
 
                 if (logicChessboard[i][y] != PLAYER.EMPTY)
                     return false;
@@ -145,21 +145,21 @@ WesternChessRule[CHESS_TYPE.PAWN] = function () {
     // this.
     this._checkRule = function (x, y, newX, newY, logicChessboard, turn, chessObject) {
         __checkRule = function (x, y, newX, newY, logicChessboard, turn, chessObject) {
-            cc.log("x,y,newX,newY", x, y, newX, newY);
+            //cc.log("x,y,newX,newY", x, y, newX, newY);
             var deltaX, deltaY;
             deltaX = Math.abs(newX - x);
             deltaY = Math.abs(newY - y);
             //pawn cannot go backward 
             var player = turn % 2;
             if (player == PLAYER.WHITE) {
-                cc.log("cannot go backward - white")
+                //cc.log("cannot go backward - white")
                 if (newX > x)
                     return false;
             }
             if (player == PLAYER.BLACK) {
-                cc.log("cannot go backward check - black")
+                //cc.log("cannot go backward check - black")
                 if (newX < x) {
-                    cc.log("cannot go backward - black")
+                    //cc.log("cannot go backward - black")
                     return false;
                 }
             }
@@ -174,7 +174,7 @@ WesternChessRule[CHESS_TYPE.PAWN] = function () {
             }
             //if cannot kill and the position is occupied, then return false; 
             if (logicChessboard[newX][newY] != PLAYER.EMPTY) {
-                cc.log("not empty cell - cannot kill")
+             
 
                 return false;
             }
@@ -187,11 +187,11 @@ WesternChessRule[CHESS_TYPE.PAWN] = function () {
                 firstTurn = true;
             }
             if (firstTurn) {
-                cc.log("deltaY", deltaY, "deltaX", deltaX)
+                //cc.log("deltaY", deltaY, "deltaX", deltaX)
                 if (deltaY != 0)
                     return false;
                 if (deltaX > 2) {
-                    cc.log("deltaX > 2")
+                    //cc.log("deltaX > 2")
                     return false;
                 }
             } else {
@@ -208,3 +208,4 @@ WesternChessRule[CHESS_TYPE.PAWN] = function () {
         return result;
     }
 }
+

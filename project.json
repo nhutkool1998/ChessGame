@@ -16,6 +16,7 @@
         "src/enum.js",
         "src/chess_rules.js",        
         "src/chessClass.js",
-        "src/app.js"
+        "src/app.js", 
+        "src/demoteStrategy.js"
     ]
 }

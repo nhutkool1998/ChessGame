@@ -146,7 +146,7 @@ var RuleBuilder = cc.Layer.extend({
        chess.removeFromParent(true);
 
        if (chess.chessType == CHESS_TYPE.KING){
-          
+
        }
     },
     isValidMove: function (chess, x, y, newX, newY, logicChessboard, turn) {
@@ -166,8 +166,8 @@ var RuleBuilder = cc.Layer.extend({
        cc.log("chess Move chess", chess.chessType);
        var newPosition = this.calculatePosition(newX, newY);
        var chessDes = this.getChessAtChessboardPosition(newX, newY);
-       cc.log("chessDes", chessDes);
-       cc.log("ChessMove player", player);
+      // cc.log("chessDes", chessDes);
+       //cc.log("ChessMove player", player);
        if (!this.isValidMove(chess, x, y, newX, newY, this.logicChessboard, this.turn)) {
           cc.log("not valid move");
           return;

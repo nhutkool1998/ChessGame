@@ -217,7 +217,7 @@ var HelloWorldLayer = cc.Layer.extend({
        var newPosition = this.calculatePosition(newX, newY);
        var chessDes = this.getChessAtChessboardPosition(newX, newY);
        cc.log("chessDes", chessDes);
-       cc.log("ChessMove player",player); 
+       //cc.log("ChessMove player",player); 
        if (!this.isValidMove(chess, x, y, newX, newY, this.logicChessboard, this.turn)) {
           cc.log("not valid move");
           return;
