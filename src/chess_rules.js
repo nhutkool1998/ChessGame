@@ -6,6 +6,14 @@ var CHESS_TYPE = {
     PAWN: "Pawn",
     CASTLE: "Castle"
 };
+var CHESS_PRIORITY = {
+    "Queen":5,
+    "Knight": 2,
+    "Bishop": 3,
+    "Pawn": 1,
+    "Castle": 4,
+    "King": 10, 
+}
 var CHESS_STATE = {
     SELECTED: 0,
     NOT_SELECTED: 1
@@ -135,8 +143,8 @@ WesternChessRule[CHESS_TYPE.QUEEN] = function () {
 
 WesternChessRule[CHESS_TYPE.PAWN] = function () {
     // this.
-    this._checkRule = function (x, y, newX, newY, logicChessboard, turn,chessObject) {
-        __checkRule = function (x, y, newX, newY, logicChessboard, turn,chessObject) {
+    this._checkRule = function (x, y, newX, newY, logicChessboard, turn, chessObject) {
+        __checkRule = function (x, y, newX, newY, logicChessboard, turn, chessObject) {
             cc.log("x,y,newX,newY", x, y, newX, newY);
             var deltaX, deltaY;
             deltaX = Math.abs(newX - x);
@@ -155,10 +163,10 @@ WesternChessRule[CHESS_TYPE.PAWN] = function () {
                     return false;
                 }
             }
-    
+
             //if can kill, then crossline is ok¡
             var chessTypeAtDestination = Object.keys(logicChessboard[newX][newY])[0];
-    
+
             if (deltaX == 1 && Math.abs(deltaY) == 1) {
                 var oppositePlayer = (turn + 1) % 2
                 if (logicChessboard[newX][newY][chessTypeAtDestination] == oppositePlayer)
@@ -167,10 +175,10 @@ WesternChessRule[CHESS_TYPE.PAWN] = function () {
             //if cannot kill and the position is occupied, then return false; 
             if (logicChessboard[newX][newY] != PLAYER.EMPTY) {
                 cc.log("not empty cell - cannot kill")
-    
+
                 return false;
             }
-    
+
             var firstTurn = false;
             if (turn % 2 == PLAYER.WHITE && x == 7) {
                 firstTurn = true;
@@ -192,11 +200,11 @@ WesternChessRule[CHESS_TYPE.PAWN] = function () {
             }
             return true;
         }
-        var result = __checkRule(x, y, newX, newY, logicChessboard, turn,chessObject,chessObject);
-        if (result){
+        var result = __checkRule(x, y, newX, newY, logicChessboard, turn, chessObject, chessObject);
+        if (result) {
             if (newX == 1 || newX == 8)
                 showPromoteDialog(chessObject);
         }
-        return result; 
+        return result;
     }
 }

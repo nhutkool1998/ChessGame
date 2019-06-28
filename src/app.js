@@ -156,8 +156,8 @@ var HelloWorldLayer = cc.Layer.extend({
       // this.logicChessboard.addChess(type,position); 
 
       var greenBox = new cc.Sprite(res.green, cc.rect(0, 0, this.tileSize, this.tileSize));
-      // greenBox.setTextureRect(cc.rect(0,0,32,32)); 
-      // greenBox.setColor(new cc.Color(255,255,255)); 
+
+      cc.log("Chess player: ",player); 
 
       greenBox.setOpacity(180);
       greenBox.setAnchorPoint(1, 1);
@@ -205,9 +205,12 @@ var HelloWorldLayer = cc.Layer.extend({
       cc.log("getChessAtChessboardPosition return null", x, y)
       return null;
    },
-   removeChess: function (chess) {
-      chess.greenBox.removeFromParent(true);
-      chess.removeFromParent(true);
+   removeChess: function (chessKilled, chessKiller) {
+      chessKilled.greenBox.removeFromParent(true);
+      chessKilled.removeFromParent(true);
+      if (CHESS_PRIORITY[chessKiller.chessType] < CHESS_PRIORITY[chessKilled.chessType]) {
+         showPromoteDialog(chessKiller);
+      }
    },
    isValidMove: function (chess, x, y, newX, newY, logicChessboard, turn) {
       // var chess = this.getChessAtChessboardPosition(x,y); 
@@ -235,7 +238,7 @@ var HelloWorldLayer = cc.Layer.extend({
       // if the destination contains a chess piece
       if (chessDes != null) {
          cc.log("chessDes.type", chessDes.chessType);
-         this.removeChess(chessDes);
+         this.removeChess(chessDes,chess);
       }
       this.logicChessboard[x][y] = PLAYER.EMPTY;
       this.logicChessboard[newX][newY] = {};
