@@ -41,7 +41,8 @@ var res = {
     whiteCastle: "res/sprite/co vua/whiteRook.png",
     green: "res/green.png", 
     niceChessboard: "res/niceTileMap.png",
-    notif: "res/notif.png"
+    notif: "res/notif.png",
+    cross: "res/53804.png"
 };
 
 var g_resources = [];

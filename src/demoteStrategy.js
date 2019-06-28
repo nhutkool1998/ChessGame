@@ -28,7 +28,7 @@ var DemoteStrategy = cc.Class.extend({
 
 var RandomDemote = DemoteStrategy.extend({
     showDescription: function(promoteDialog,type){
-        this.description = "A random chess of chosen kind will be randomly demoted\nPawn cannot be demoted"; 
+        this.description = "A random chess of chosen kind will be demoted\nPawn cannot be demoted.A chess can promoted ONCE only"; 
         this._super(promoteDialog,type); 
     },
     execute: function(type,player){

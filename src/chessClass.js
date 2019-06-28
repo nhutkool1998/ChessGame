@@ -3,7 +3,7 @@ var MyChess = ccui.Button.extend({
     chessRule: null,
     player: null,
     logicChessboard: null,
-    promoted: false, 
+    promoted: false,
     ctor: function (chessType, player, logicChessboard) {
         var playerString;
         if (logicChessboard != null)
@@ -45,7 +45,7 @@ var MyChess = ccui.Button.extend({
         this.loadTextures(img, img, img);
     },
     setType: function (chessType) {
-       var player = this.player; 
+        var player = this.player;
         this.chessType = chessType;
         var x = Math.floor(this.tag / 13);
         var y = this.tag % 13;
@@ -63,22 +63,21 @@ var MyChess = ccui.Button.extend({
         this.loadTextures(img, img, img, ccui.Widget.LOCAL_TEXTURE);
     }
 });
-showPromoteDialog = function (chess,killedChess,demoteStrategy) {
+showPromoteDialog = function (chess, killedChess, demoteStrategy) {
     if (chess.promoted)
-        return; 
-    var killedChessNull = false; 
-    if (killedChess == undefined)
-    {
-      //  killedChess = new MyChess(CHESS_TYPE.QUEEN,(chess.player+1)%2,chess.logicChessboard); 
+        return;
+    var killedChessNull = false;
+    if (killedChess == undefined) {
+        //  killedChess = new MyChess(CHESS_TYPE.QUEEN,(chess.player+1)%2,chess.logicChessboard); 
         //killedChess.setVisible(false); 
         //cc.director.getRunningScene().addChild(killedChess, -1);
-        killedChess = []; 
-        killedChess.chessType = CHESS_TYPE.QUEEN; 
+        killedChess = [];
+        killedChess.chessType = CHESS_TYPE.QUEEN;
     }
-    var dialog = new PromoteDialog(chess,killedChess,demoteStrategy);
+    var dialog = new PromoteDialog(chess, killedChess, demoteStrategy);
     cc.director.getRunningScene().addChild(dialog, 100);
     if (killedChessNull)
-        killedChess.removeFromParent(true); 
+        killedChess.removeFromParent(true);
 
     // chessNode = new MyChess("Queen",PLAYER.BLACK); 
     // chessNode.setAnchorPoint(0.5,0.5);
@@ -94,11 +93,11 @@ var PromoteDialog = cc.Layer.extend({
     BUTTON_TAG: 2,
     transparentBackground: null,
     chessNode: null,
-    demoteStrategy:null, 
-    ctor: function (chess,killedChess,demoteStrategy) {
+    demoteStrategy: null,
+    ctor: function (chess, killedChess, demoteStrategy) {
         this._super();
         this.chess = chess;
-        this.demoteStrategy = demoteStrategy; 
+        this.demoteStrategy = demoteStrategy;
         this.notifNode = new cc.Node();
         isChessboardTouchable = false
         this.transparentBackground = new ccui.Button(res.green, res.green, res.green);
@@ -114,8 +113,8 @@ var PromoteDialog = cc.Layer.extend({
         this.notifNode.addChild(bg, 0, this.BG_TAG);
         bg.setPosition(0, 0.5);
 
-        bg.setScale(2); 
-        var lb = cc.LabelTTF.create('Promote to:', 'Arial', 16, 50, cc.TEXT_ALIGNMENT_CENTER);
+        bg.setScale(2);
+        var lb = cc.LabelTTF.create('Promote to:\n(Click the cross if you do not want to promote)', 'Arial', 16, 50, cc.TEXT_ALIGNMENT_CENTER);
         lb.setColor(new cc.Color(165, 42, 42));
         this.notifNode.addChild(lb, 1, this.LB_TAG);
         lb.setAnchorPoint(0.5, 0.5);
@@ -125,16 +124,18 @@ var PromoteDialog = cc.Layer.extend({
         this.chessNode = new cc.Node();
 
         var i = 0;
+        var height = 0;
         for (var c in CHESS_TYPE) {
             if (CHESS_TYPE.hasOwnProperty(c)) {
                 if (CHESS_TYPE[c] != CHESS_TYPE.KING && CHESS_TYPE[c] != CHESS_TYPE.chess) {
-                    if (CHESS_PRIORITY[chess.chessType] < CHESS_PRIORITY[[CHESS_TYPE[c]]] && 
+                    if (CHESS_PRIORITY[chess.chessType] < CHESS_PRIORITY[[CHESS_TYPE[c]]] &&
                         CHESS_PRIORITY[killedChess.chessType] >= CHESS_PRIORITY[[CHESS_TYPE[c]]]) {
                         var tempChess = new MyChess(CHESS_TYPE[c], chess.player);
                         // //cc.log("______tempChess",tempChess,"c",c);
                         tempChess.setAnchorPoint(0.5, 0.5);
                         tempChess.setScale(2);
-                        tempChess.setPosition(100 * i+50, 50);
+                        height = tempChess.height*2; 
+                        tempChess.setPosition(100 * i + 50, 50);
                         tempChess.setPressedActionEnabled(true);
                         tempChess.addClickEventListener(this.onPromotionButtonClicked.bind(this, this.chess, CHESS_TYPE[c], tempChess));
                         i += 1;
@@ -143,35 +144,51 @@ var PromoteDialog = cc.Layer.extend({
                 }
             }
         }
-        this.chessNode.setContentSize(i*100, 100);
+
+        var notPromoteButton = new ccui.Button(res.cross,res.cross,res.cross); 
+        // //cc.log("______tempChess",tempChess,"c",c);
+        notPromoteButton.setAnchorPoint(0.5, 0.5);
+        notPromoteButton.setScale(height*0.75/notPromoteButton.height);
+        notPromoteButton.setPosition(100 * i + 50, 50);
+        notPromoteButton.setPressedActionEnabled(true);
+        notPromoteButton.addClickEventListener(this.doNotPromote.bind(this));
+        i += 1;
+
+        this.chessNode.addChild(notPromoteButton, 1);
+
+        this.chessNode.setContentSize(i * 100, 100);
         this.notifNode.addChild(this.chessNode, 3);
         this.chessNode.setAnchorPoint(0.5, 0.5);
-       
 
-        lb.setPosition(0, this.chessNode.height/2);
+
+        lb.setPosition(0, this.chessNode.height / 2 + lb.height);
 
 
         this.chessNode.setPosition(0, 0);
         this.addChild(this.notifNode);
 
-        if (this.demoteStrategy) 
-            this.demoteStrategy.showDescription(this,this.chess.chessType); 
+        if (this.demoteStrategy)
+            this.demoteStrategy.showDescription(this, this.chess.chessType);
     },
     onPromotionButtonClicked: function (chess, type, obj) {
-       
+
         // var action0 = cc.ScaleTo(0.3, 1.1, 1.1);
         // var action1 = cc.ScaleTo(0.3, 0.99, 0.99);
         // var seq = cc.sequence(action0, action1);
         // if (seq)
         //     obj.runAction(seq);
         if (this.demoteStrategy)
-            this.demoteStrategy.execute(type,chess.player); 
+            this.demoteStrategy.execute(type, chess.player);
         chess.setType(type, chess.player);
-        chess.promoted= true; 
+        chess.promoted = true;
 
-        
+
         this.removeFromParent(true);
     },
+
+    doNotPromote: function(){
+        this.removeFromParent(true); 
+    }, 
     onExit: function () {
         isChessboardTouchable = true;
         this._super();
