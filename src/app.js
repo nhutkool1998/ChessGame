@@ -100,7 +100,7 @@ var HelloWorldLayer = cc.Layer.extend({
 
       randomDemote.init(this.chessObjects,this.logicChessboard);
    },
-   scaleAllBy(scale) {
+   scaleAllBy: function(scale) {
       this.setScale(scale); 
       
    },

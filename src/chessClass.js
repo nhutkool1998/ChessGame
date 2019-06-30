@@ -195,25 +195,34 @@ var PromoteDialog = cc.Layer.extend({
     }
 })
 
-var RollingDialog = cc.Node.extend({
-    bg: null,
-    button: null,
+var WinDialog = cc.Layer.extend({
     ctor: function () {
-        this.bg = new cc.Sprite(res.notif);
-        this.button = new ccui.Button(res.dice, res.dice, res.dice);
+        this._super();
+       
+        this.notifNode = new cc.Node();
+        isChessboardTouchable = false
+        this.transparentBackground = new ccui.Button(res.green, res.green, res.green);
+        this.transparentBackground.setScale(cc.winSize.width / this.transparentBackground.width, cc.winSize.height, this.transparentBackground.height);
+        this.transparentBackground.setOpacity(100);
+        this.transparentBackground.setPosition(cc.winSize.width / 2, cc.winSize.height / 2);
+        this.transparentBackground.setPosition(0, 0);
+        this.transparentBackground.setAnchorPoint(0, 0);
+        this.addChild(this.transparentBackground, 0);
 
-        this.addChild(this.bg);
-        this.addChild(this.button);
+        var bg = new cc.Sprite(res.notif);
+        // bg.setScale(3); 
+        this.notifNode.addChild(bg, 0, this.BG_TAG);
+        bg.setPosition(0, 0);
 
-        this.bg.setAnchorPoint(0.5, 0.5);
-        this.button.setAnchorPoint(0.5, 0.5);
+        bg.setScale(2);
+        var lb = cc.LabelTTF.create('Win!!! Refresh for a new game)', 'Arial', 40, 50, cc.TEXT_ALIGNMENT_CENTER);
+        lb.setColor(new cc.Color(165, 42, 42));
+        this.notifNode.addChild(lb, 1, this.LB_TAG);
+        lb.setAnchorPoint(0.5, 0.5);
+        lb.setPosition(0,0); 
 
-        this.button.setPosition(0, this.bg.height / 2);
-        this.setContentSize(this.bg.width, this.bg.height + this.button.height);
+        this.addChild(this.notifNode);
+        this.notifNode.setPosition(cc.winSize.width / 2, cc.winSize.height / 2);
 
-        this.button.addClickEventListener(this.rollDice);
     },
-    rollDice: function () {
-
-    }
 })

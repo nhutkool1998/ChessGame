@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.2" tiledversion="1.2.3" orientation="orthogonal" renderorder="right-down" width="8" height="8" tilewidth="32" tileheight="32" infinite="0" nextlayerid="2" nextobjectid="1">
+ <tileset firstgid="1" name="chess board" tilewidth="32" tileheight="32" tilecount="12992" columns="112">
+  <image source="../../sprite/co vua/chess board.png" width="3595" height="3723"/>
+ </tileset>
+ <layer id="1" name="Tile Layer 1" width="8" height="8">
+  <data encoding="csv">
+1345,1683,1345,1683,1345,1683,1345,1683,
+1794,1345,1683,1345,1683,1345,1683,1345,
+1345,1683,1345,1683,1345,1683,1345,1683,
+1683,1345,1683,1345,1683,1345,1683,1345,
+1345,1683,1345,1683,1345,1683,1345,1683,
+1683,1345,1683,1345,1683,1345,1683,1345,
+1345,1683,1345,1683,1345,1683,1345,1683,
+1683,1345,1683,1345,1683,1345,1683,1345
+</data>
+ </layer>
+</map>
