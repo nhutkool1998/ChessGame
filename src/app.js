@@ -23,7 +23,7 @@
  ****************************************************************************/
 
 var isChessboardTouchable = true; 
-var ChessboardGUI = cc.Layer.extend({
+var HelloWorldLayer = cc.Layer.extend({
    logicChessboard: null,
    mapNode: null,
    tileSize: 32,
@@ -33,7 +33,6 @@ var ChessboardGUI = cc.Layer.extend({
    turn: 0,
    chessboardNode: null,
    chessObjects:[], 
-   revertButton: null, 
    ctor: function () {
       //////////////////////////////
       // 1. super init first
@@ -61,19 +60,12 @@ var ChessboardGUI = cc.Layer.extend({
          cc.winSize.height / 2-this.mapSize/2);
       this.scaleAllBy(2);
 
-
-      this.addRevertButton(); 
-
       this.initChessboard();
       this.initCodeForChessMoving();
 
       return true;
    },
   
-   addRevertButton: function(){
-
-   },
-
    initChessboard: function () {
       this.addChess(res.whiteRook, cc.p(8, 1), CHESS_TYPE.CASTLE, PLAYER.WHITE);
       this.addChess(res.whiteRook, cc.p(8, 8), CHESS_TYPE.CASTLE, PLAYER.WHITE);
@@ -181,14 +173,11 @@ var ChessboardGUI = cc.Layer.extend({
       return null;
    },
    removeChess: function (chessKilled, chessKiller) {
-      chessKilled.greenBox.setVisible(false);
-      chessKilled.setVisible(false);
+      chessKilled.greenBox.removeFromParent(true);
+      chessKilled.removeFromParent(true);
       if (CHESS_PRIORITY[chessKiller.chessType] < CHESS_PRIORITY[chessKilled.chessType]) {
          if (chessKiller.chessType!= CHESS_TYPE.KING && chessKilled.chessType != CHESS_TYPE.KING)
              showPromoteDialog(chessKiller,chessKilled,randomDemote);
-      }
-      else if (chessKilled.chessType == CHESS_TYPE.KING){
-         
       }
    },
    isValidMove: function (chess, x, y, newX, newY, logicChessboard, turn) {
@@ -310,7 +299,7 @@ var ChessboardGUI = cc.Layer.extend({
 var HelloWorldScene = cc.Scene.extend({
    onEnter: function () {
       this._super();
-      var layer = new StartGameScreen();
+      var layer = new HelloWorldLayer();
       this.addChild(layer);
    }
 });

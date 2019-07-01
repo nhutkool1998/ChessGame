@@ -42,12 +42,7 @@ var res = {
     green: "res/green.png", 
     niceChessboard: "res/niceTileMap.png",
     notif: "res/notif.png",
-    cross: "res/53804.png",
-    war: "res/war.png", 
-    buttonImg: "res/button.png",
-    font: "res/fista_16_non.fnt", 
-    fontImg:"res/fista_16_non.png",
-    textbox:"res/textbox.png"
+    cross: "res/53804.png"
 };
 
 var g_resources = [];
