@@ -17,6 +17,7 @@
         "src/chess_rules.js",        
         "src/chessClass.js",
         "src/app.js", 
-        "src/demoteStrategy.js"
+        "src/demoteStrategy.js",
+        "src/startGameScreen.js"
     ]
 }
