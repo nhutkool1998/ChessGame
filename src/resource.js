@@ -47,7 +47,8 @@ var res = {
     buttonImg: "res/button.png",
     font: "res/fista_16_non.fnt", 
     fontImg:"res/fista_16_non.png",
-    textbox:"res/textbox.png"
+    textbox:"res/textbox.png",
+    your_turn:"res/your_turn.png"
 };
 
 var g_resources = [];

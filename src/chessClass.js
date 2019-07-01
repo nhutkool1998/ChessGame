@@ -134,7 +134,7 @@ var PromoteDialog = cc.Layer.extend({
                         // //cc.log("______tempChess",tempChess,"c",c);
                         tempChess.setAnchorPoint(0.5, 0.5);
                         tempChess.setScale(2);
-                        height = tempChess.height*2; 
+                        height = tempChess.height * 2;
                         tempChess.setPosition(100 * i + 50, 50);
                         tempChess.setPressedActionEnabled(true);
                         tempChess.addClickEventListener(this.onPromotionButtonClicked.bind(this, this.chess, CHESS_TYPE[c], tempChess));
@@ -145,10 +145,10 @@ var PromoteDialog = cc.Layer.extend({
             }
         }
 
-        var notPromoteButton = new ccui.Button(res.cross,res.cross,res.cross); 
+        var notPromoteButton = new ccui.Button(res.cross, res.cross, res.cross);
         // //cc.log("______tempChess",tempChess,"c",c);
         notPromoteButton.setAnchorPoint(0.5, 0.5);
-        notPromoteButton.setScale(height*0.75/notPromoteButton.height);
+        notPromoteButton.setScale(height * 0.75 / notPromoteButton.height);
         notPromoteButton.setPosition(100 * i + 50, 50);
         notPromoteButton.setPressedActionEnabled(true);
         notPromoteButton.addClickEventListener(this.doNotPromote.bind(this));
@@ -186,9 +186,9 @@ var PromoteDialog = cc.Layer.extend({
         this.removeFromParent(true);
     },
 
-    doNotPromote: function(){
-        this.removeFromParent(true); 
-    }, 
+    doNotPromote: function () {
+        this.removeFromParent(true);
+    },
     onExit: function () {
         isChessboardTouchable = true;
         this._super();
@@ -198,7 +198,7 @@ var PromoteDialog = cc.Layer.extend({
 var WinDialog = cc.Layer.extend({
     ctor: function () {
         this._super();
-       
+
         this.notifNode = new cc.Node();
         isChessboardTouchable = false
         this.transparentBackground = new ccui.Button(res.green, res.green, res.green);
@@ -219,10 +219,43 @@ var WinDialog = cc.Layer.extend({
         lb.setColor(new cc.Color(165, 42, 42));
         this.notifNode.addChild(lb, 1, this.LB_TAG);
         lb.setAnchorPoint(0.5, 0.5);
-        lb.setPosition(0,0); 
+        lb.setPosition(0, 0);
 
         this.addChild(this.notifNode);
         this.notifNode.setPosition(cc.winSize.width / 2, cc.winSize.height / 2);
 
+    },
+})
+
+var NotYourTurnDialog = cc.Node.extend({
+    ___text: "Not Your Turn",
+    ctor: function () {
+        this._super();
+        this.notifNode = new cc.Node();
+        isChessboardTouchable = false
+        this.transparentBackground = new ccui.Button(res.green, res.green, res.green);
+        this.transparentBackground.setScale(cc.winSize.width / this.transparentBackground.width, cc.winSize.height, this.transparentBackground.height);
+        this.transparentBackground.setOpacity(100);
+        this.transparentBackground.setPosition(cc.winSize.width / 2, cc.winSize.height / 2);
+        this.transparentBackground.setPosition(0, 0);
+        this.transparentBackground.setAnchorPoint(0, 0);
+        this.addChild(this.transparentBackground, 0);
+
+        var bg = new ccc(res.notif);
+        // bg.setScale(3); 
+        this.notifNode.addChild(bg, 0, this.BG_TAG);
+        bg.setPosition(0, 0);
+
+        bg.setScale(2);
+        // var lb = cc.LabelTTF.create('Win!!! Refresh for a new game)', 'Arial', 40, 50, cc.TEXT_ALIGNMENT_CENTER);
+        var lb = new cc.LabelBMFont("Not your turn!!!\nClick to dismiss", res.font);
+        lb.setScale(2);
+        lb.setColor(new cc.Color(165, 42, 42));
+        this.notifNode.addChild(lb, 1, this.LB_TAG);
+        lb.setAnchorPoint(0.5, 0.5);
+        lb.setPosition(0, 0);
+
+        this.addChild(this.notifNode);
+        this.notifNode.setPosition(cc.winSize.width / 2, cc.winSize.height / 2);
     },
 })

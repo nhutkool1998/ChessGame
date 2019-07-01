@@ -22,7 +22,8 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-var isChessboardTouchable = true; 
+var isChessboardTouchable = true;
+var ChessboardGUIInstance = null;
 var ChessboardGUI = cc.Layer.extend({
    logicChessboard: null,
    mapNode: null,
@@ -32,45 +33,68 @@ var ChessboardGUI = cc.Layer.extend({
    selectedChess: null,
    turn: 0,
    chessboardNode: null,
-   chessObjects:[], 
-   revertButton: null, 
-   ctor: function () {
+   chessObjects: [],
+   revertButton: null,
+   playerSide: null,
+   yourTurnLabel: null,
+   ctor: function (isWhitePlayer) {
       //////////////////////////////
       // 1. super init first
       this._super();
-      // this.logicChessboard = new LogicChessboard(); 
+      ChessboardGUIInstance = this;
       this.mapSize = this.tileSize * this.tileCount;
-      // ////cc.log("this.mapSize", this.mapSize);
 
+      // this.yourTurnLabel = new cc.LabelBMFont("YOUR TURN!", res.font);
+      // this.yourTurnLabel.setColor(new cc.Color(0, 0, 255));
+      // this.yourTurnLabel.setAnchorPoint(0.5, 0.5);
+      // this.yourTurnLabel.setScale(1);
+      this.yourTurnLabel = new cc.Sprite(res.your_turn); 
+      this.yourTurnLabel.setScale(this.mapSize/this.yourTurnLabel.width); 
+      var lbHeight = this.mapSize/this.yourTurnLabel.width* this.yourTurnLabel.height;
+      this.addChild(this.yourTurnLabel,100); 
+      if (isWhitePlayer == true) {
+         this.turn = 0;
+         this.playerSide = PLAYER.WHITE;
+         this.yourTurnLabel.setVisible(false);
+         this.yourTurnLabel.setPosition(cc.winSize.width / 2, cc.winSize.height/2 + this.mapSize/2
+              +lbHeight/2 );
 
-
+      } else {
+         this.turn = 0;
+         this.playerSide = PLAYER.BLACK;
+         this.yourTurnLabel.setVisible(true);
+         this.yourTurnLabel.setPosition(cc.winSize.width / 2 , cc.winSize.height/2-this.mapSize/2
+           - lbHeight/2);
+      }
       this.mapNode = new cc.Sprite("res/niceTileMap.png");;
       this.mapNode.setPosition(cc.winSize.width / 2, cc.winSize.height / 2);
-      // ////cc.log(this.mapNode); 
       this.mapNode.setAnchorPoint(0.5, 0.5);
       this.addChild(this.mapNode);
 
 
 
       this.chessboardNode = new cc.Node();
-      this.chessboardNode.setContentSize(256 ,256);
+      this.chessboardNode.setContentSize(256, 256);
 
       this.chessboardNode.setAnchorPoint(0, 0);
       this.addChild(this.chessboardNode);
-      this.chessboardNode.setPosition(cc.winSize.width / 2 - this.mapSize/2, 
-         cc.winSize.height / 2-this.mapSize/2);
+      this.chessboardNode.setPosition(cc.winSize.width / 2 - this.mapSize / 2,
+         cc.winSize.height / 2 - this.mapSize / 2);
       this.scaleAllBy(2);
 
 
-      this.addRevertButton(); 
+      this.addRevertButton();
 
       this.initChessboard();
       this.initCodeForChessMoving();
 
+
+      this.listenForChessMoveFromServer();
+      this.removeFromParent(true);
       return true;
    },
-  
-   addRevertButton: function(){
+
+   addRevertButton: function () {
 
    },
 
@@ -106,13 +130,13 @@ var ChessboardGUI = cc.Layer.extend({
       this.addChess(res.blackQueen, cc.p(1, 4), CHESS_TYPE.QUEEN, PLAYER.BLACK);
       this.addChess(res.blackKing, cc.p(1, 5), CHESS_TYPE.KING, PLAYER.BLACK);
 
-      randomDemote.init(this.chessObjects,this.logicChessboard);
+      randomDemote.init(this.chessObjects, this.logicChessboard);
    },
-   scaleAllBy: function(scale) {
-      this.setScale(scale); 
-      
+   scaleAllBy: function (scale) {
+      this.setScale(scale);
+
    },
-   
+
    getTagFromXY: function (x, y) {
       return x * 13 + y;
    },
@@ -132,17 +156,17 @@ var ChessboardGUI = cc.Layer.extend({
       this.logicChessboard[position.x][position.y][type] = player;
 
       if (player == PLAYER.BLACK)
-            playerString = "black";
-        if (player == PLAYER.WHITE)
-            playerString = "white";
+         playerString = "black";
+      if (player == PLAYER.WHITE)
+         playerString = "white";
       var img = "res/green.png";
-      
-      var newChess = new MyChess(type,player,this.logicChessboard);
-      
+
+      var newChess = new MyChess(type, player, this.logicChessboard);
+
       newChess.chessType = type;
       newChess.stateTag = CHESS_STATE.NOT_SELECTED;
       newChess.setScale(this.tileSize / newChess.getContentSize().width);
-     
+
       newChess.setAnchorPoint(1, 1);
       var chessPos = this.calculatePosition(position.x, position.y);
       newChess.setPosition(chessPos);
@@ -157,96 +181,142 @@ var ChessboardGUI = cc.Layer.extend({
       greenBox.setVisible(false);
       this.mapNode.addChild(greenBox, 1);
 
-      this.chessObjects.push(newChess); 
+      this.chessObjects.push(newChess);
    },
    calculatePosition: function (x, y) {
       topLeftX = 0;
-      topLeftY =0;
+      topLeftY = 0;
       //TODO: since row first, column follows, resX and resY must be interchanged.
-      var resX = y*this.tileSize;
-      var resY = x*this.tileSize;
+      var resX = y * this.tileSize;
+      var resY = x * this.tileSize;
       return cc.p(resX, resY);
    },
    calculateScreenPosition: function (x, y) {
-      resX = Math.floor((+ y) / 32) + 1;
-      resY = Math.floor(( x) / 32) + 1;
-      // //cc.log("screen position",resX, resY);
+      resX = Math.floor((+y) / 32) + 1;
+      resY = Math.floor((x) / 32) + 1;
       return cc.p(resX, resY);
    },
    getChessAtChessboardPosition: function (x, y) {
       var chess = this.mapNode.getChildByTag(this.getTagFromXY(x, y));
       if (chess)
          return chess;
-    //  //cc.log("getChessAtChessboardPosition return null", x, y)
       return null;
    },
    removeChess: function (chessKilled, chessKiller) {
       chessKilled.greenBox.setVisible(false);
       chessKilled.setVisible(false);
       if (CHESS_PRIORITY[chessKiller.chessType] < CHESS_PRIORITY[chessKilled.chessType]) {
-         if (chessKiller.chessType!= CHESS_TYPE.KING && chessKilled.chessType != CHESS_TYPE.KING)
-             showPromoteDialog(chessKiller,chessKilled,randomDemote);
-      }
-      else if (chessKilled.chessType == CHESS_TYPE.KING){
-         
+         if (chessKiller.chessType != CHESS_TYPE.KING && chessKilled.chessType != CHESS_TYPE.KING)
+            showPromoteDialog(chessKiller, chessKilled, randomDemote);
+      } else if (chessKilled.chessType == CHESS_TYPE.KING) {
+
       }
    },
    isValidMove: function (chess, x, y, newX, newY, logicChessboard, turn) {
-      // var chess = this.getChessAtChessboardPosition(x,y); 
       //if the player pick his chess pieces, not his opponent's
       if (x == newX && y == newY)
          return false;
       var player = (turn % 2);
-      ////cc.log("isValid move ", logicChessboard[x][y])
       if (logicChessboard[x][y][chess.chessType] != player)
          return false;
-      var result = chess.checkRule(x,y,newX,newY,logicChessboard,turn); 
-      return result; 
+      var result = chess.checkRule(x, y, newX, newY, logicChessboard, turn);
+      return result;
    },
    chessMove: function (x, y, newX, newY, player) {
       var chess = this.getChessAtChessboardPosition(x, y);
-    //  //cc.log("chess Move chess", chess.chessType);
       var newPosition = this.calculatePosition(newX, newY);
       var chessDes = this.getChessAtChessboardPosition(newX, newY);
-     // //cc.log("chessDes", chessDes);
-     // //cc.log("ChessMove player", player);
+
+
       if (!this.isValidMove(chess, x, y, newX, newY, this.logicChessboard, this.turn)) {
-       //  //cc.log("not valid move");
          return;
       }
-      // if the destination contains a chess piece
-      if (chessDes != null) {
-        // //cc.log("chessDes.type", chessDes.chessType);
-         this.removeChess(chessDes,chess);
-      }
-      this.logicChessboard[x][y] = PLAYER.EMPTY;
-      this.logicChessboard[newX][newY] = {};
-      this.logicChessboard[newX][newY][chess.chessType] = player;
-      // //cc.log("          chessType:", chess.chessType)
-      chess.setPosition(newPosition);
-      chess.setTag(this.getTagFromXY(newX, newY));
-      chess.greenBox.setPosition(newPosition);
-      this.turn = this.turn + 1;
-      // this.turn %=2; 
 
+      var chessType = chessDes ? chessDes.chessType : "null";
+      this.sendMoveRequest(this.turn, x, y, newX, newY, chessType);
+   },
+   sendMoveRequest: function (turn, x, y, newX, newY, chessKilled) {
+      var database = firebase.database();
+      var req = {};
+      req["turn"] = turn;
+      req["x"] = x;
+      req["y"] = y;
+      req["newX"] = newX;
+      req["newY"] = newY;
+      req["chessKilledType"] = chessKilled;
+      database.ref("room/" + roomID + "/" + (turn)).set(req);
+
+      
+      this.listenForChessMoveFromServer();
+   },
+   onReceiveChessMove: function (turn, x, y, newX, newY, chessKilled) {
+      cc.log("client turn: ",this.turn,"server:",turn, x, y, newX, newY); 
+      firebase.database().ref("room/"+roomID+"/"+turn).off(); 
+      if (this.turn == turn) {
+         var player = this.turn % 2;
+         var chess = this.getChessAtChessboardPosition(x, y);
+         var newPosition = this.calculatePosition(newX, newY);
+         var chessDes = this.getChessAtChessboardPosition(newX, newY);
+         if (chessDes != null) {
+            this.removeChess(chessDes, chess);
+         }
+         this.logicChessboard[x][y] = PLAYER.EMPTY;
+         this.logicChessboard[newX][newY] = {};
+         this.logicChessboard[newX][newY][chess.chessType] = player;
+         chess.setPosition(newPosition);
+         chess.setTag(this.getTagFromXY(newX, newY));
+         chess.greenBox.setPosition(newPosition);
+         this.turn = this.turn + 1;    
+         this.listenForChessMoveFromServer();
+         // this.turn %=2; 
+      }
+   },
+   listenForChessMoveFromServer: function () {
+      cc.log("listenForChessMoveFromServer",this.turn); 
+
+      if (this.turn %2 == this.playerSide){
+         this.yourTurnLabel.setVisible(true)
+      }
+      else {
+         this.yourTurnLabel.setVisible(false); 
+      }
+
+      var database = firebase.database();
+      if (roomID ==null)
+         return; 
+      database.ref("room/" + roomID + "/" + this.turn).on('value', function (snapshot) {
+         // cc.log("Receive from room",roomID,ChessboardGUIInstance.turn   ); 
+         if (snapshot != null) {
+            var req = snapshot.val();
+            if (req != null) {
+               ChessboardGUIInstance.onReceiveChessMove(req.turn, req.x, req.y, req.newX, req.newY);
+            }
+         }
+      });
    },
 
    getBoardPositionFromTag: function (tag) {
       return getBoardPositionFromTag(tag);
    },
+  
    onUserMoveChess: function (event) {
       if (event.getButton() != cc.EventMouse.BUTTON_LEFT)
-         return;
+         return false;
       if (!isChessboardTouchable)
-         return; 
+         return false;
+
+
       //TARGET here is the layer itself; 
       var target = event.getCurrentTarget();
       var position = event.getLocation();
+      if (target.turn % 2 != target.playerSide) {
+        // target.showNotYourTurnDialog();
+         return false;
+      }
+      cc.log("On user move chess");
       position = target.chessboardNode.convertToNodeSpace(position);
-      // var position = cc.p(position1.x - target.mapNode.x,position1.y-target.mapNode.y); 
       var stillInChessboard = true;
       var clickPosition = target.calculateScreenPosition(position.x, position.y);
-     // //cc.log("clickPosition", clickPosition.x, clickPosition.y);
       var isValidPosition = function (position) {
          if (position.x <= 0 || position.y <= 0)
             return false;
@@ -257,39 +327,27 @@ var ChessboardGUI = cc.Layer.extend({
 
       if (isValidPosition(clickPosition) && target.selectedChess == null) {
          target.selectedChess = target.getChessAtChessboardPosition(clickPosition.x, clickPosition.y);
-         //cc.log("target.selectedChess ", target.selectedChess);
-         // target.selectedChess.setScale(target.selectedChess.getScale() +0.15); 
          if (target.selectedChess != null) {
-            ////cc.log("target.logicChessboard[clickPosition.x][clickPosition.y][target.selectedChess.chessType]", target.logicChessboard[clickPosition.x][clickPosition.y][target.selectedChess.chessType]);
-            ////cc.log("turn", target.turn);
             var isRightTurn = (target.turn % 2) == target.logicChessboard[clickPosition.x][clickPosition.y][target.selectedChess.chessType];
             if (!isRightTurn) {
-               ////cc.log("not right turn");
                target.selectedChess = null;
-               return;
+               cc.log("NOT RIGHT TURN, Bastard")
+               return false;
             }
             target.selectedChess.greenBox.setVisible(true);
-            // var actionZoom = cc.scaleBy(0.1, 1.15);
-            // target.selectedChess.runAction(cc.sequence(actionZoom, actionZoom.reverse()));
-         }  
-         return;
+
+         }
+         return false;
       }
-      //   ////cc.log("onUserMoveChess, selectedChess", target.selectedChess);
       if (isValidPosition(clickPosition) && target.selectedChess != null) {
-         // target.selectedChess.setScale(target.selectedChess.getScale() - 0.15); 
          var oldPos = target.getBoardPositionFromTag(target.selectedChess.getTag());
-         //   ////cc.log(oldPos.x, oldPos.y, "oldPos");
          var newPos = target.calculateScreenPosition(position.x, position.y);
-         //  ////cc.log("newPos", newPos.x, newPos.y, "newPos");
          var currentPlayer = target.turn % 2;
          target.chessMove(oldPos.x, oldPos.y, newPos.x, newPos.y, currentPlayer);
-         // target.turn = (target.turn + 1) % 2;
-
          target.selectedChess.greenBox.setVisible(false);
          target.selectedChess = null;
       }
-      //var layerContainingChess = target.getParent().getParent(); 
-      // target.chessMove(
+      return true; 
    },
    initCodeForChessMoving: function (self) {
       self = this;
@@ -299,11 +357,16 @@ var ChessboardGUI = cc.Layer.extend({
             if (event.getButton() != cc.EventMouse.BUTTON_LEFT)
                return;
             var target = event.getCurrentTarget();
+            target.yourTurnLabel.setVisible(false); 
             // target.setScale(1.15);
          },
          onMouseMove: function (event) {},
          onMouseUp: this.onUserMoveChess
       }, this);
+   },
+   showNotYourTurnDialog: function () {
+      var dialog = new NotYourTurnDialog();
+      this.addChild(dialog, 1000);
    }
 });
 
@@ -317,4 +380,15 @@ var HelloWorldScene = cc.Scene.extend({
 
 getBoardPositionFromTag = function (tag) {
    return cc.p(Math.floor(tag / 13), tag % 13);
-}; 
+};
+
+var GameScreen = cc.Scene.extend({
+   ctor: function (isWhitePlayer) {
+      this.isWhitePlayer = isWhitePlayer;
+   },
+   onEnter: function () {
+      this._super();
+      var layer = new ChessboardGUI(this.isWhitePlayer);
+      this.addChild(layer);
+   }
+})
