@@ -68,7 +68,7 @@ var StartGameScreen = cc.Layer.extend({
         var p = {};
         database.ref("room/"+roomID).off();
         var _roomID = this.textField.getString();
-        if (_roomID != roomID + ""){
+        if (_roomID == roomID + ""){
             selfPlay = true;
         }
         p[_roomID] = roomID;
