@@ -45,8 +45,10 @@ var res = {
     cross: "res/53804.png",
     war: "res/war.png", 
     buttonImg: "res/button.png",
-    font: "res/fista_16_non.fnt", 
-    fontImg:"res/fista_16_non.png",
+    font1: "res/fista_16_non.fnt", 
+    font: "res/soji_16.fnt", 
+    fontImg: "res/soji_16.png",
+    fontImg1:"res/fista_16_non.png",
     textbox:"res/textbox.png",
     your_turn:"res/your_turn.png"
 };
