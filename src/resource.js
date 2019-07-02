@@ -50,7 +50,9 @@ var res = {
     fontImg: "res/soji_16.png",
     fontImg1:"res/fista_16_non.png",
     textbox:"res/textbox.png",
-    your_turn:"res/your_turn.png"
+    your_turn:"res/your_turn.png",
+    win:"res/win.png",
+    lose: "res/lose.png"
 };
 
 var g_resources = [];

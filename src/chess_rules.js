@@ -6,6 +6,7 @@ var CHESS_TYPE = {
     PAWN: "Pawn",
     CASTLE: "Castle"
 };
+
 var CHESS_PRIORITY = {
     "Queen":5,
     "Knight": 2,

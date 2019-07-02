@@ -38,6 +38,8 @@ var ChessboardGUI = cc.Layer.extend({
    revertButton: null,
    playerSide: null,
    yourTurnLabel: null,
+   greenBoxPool: [],
+   numGreenBoxUse: 0, 
    ctor: function (isWhitePlayer) {
       //////////////////////////////
       // 1. super init first
@@ -85,6 +87,7 @@ var ChessboardGUI = cc.Layer.extend({
 
 
       this.addRevertButton();
+      this.addSurrenderButton();
 
       this.initChessboard();
       this.initCodeForChessMoving();
@@ -92,15 +95,30 @@ var ChessboardGUI = cc.Layer.extend({
 
       this.listenForChessMoveFromServer();
       this.listenForRevertRequest();
-      this.listenForTypeChange(); 
+      this.listenForTypeChange();
+      this.listenForGameResult();
       this.removeFromParent(true);
       return true;
    },
-
+   listenForGameResult: function () {
+      firebase.database().ref("room/" + roomID + "/gameResult").on('value', function (snapshot) {
+         if (snapshot != null) {
+            var value = snapshot.val();
+            cc.log("GAME RESULT::::::", value);
+            if (value != null) {
+               if (value.playerWin == ChessboardGUIInstance.playerSide) {
+                  showWinDialog();
+               } else {
+                  showLoseDialog();
+               }
+            }
+         }
+      });
+   },
    addRevertButton: function () {
       var lb = new cc.LabelBMFont("Revert", res.font);
       var bg = new cc.Scale9Sprite(res.buttonImg);
-      lb.setScale(0.5); 
+      lb.setScale(0.5);
 
       this.revertButton = new cc.ControlButton(lb, bg);
       // this.revertButton.setPreferredSize(bg.getContentSize());
@@ -108,7 +126,7 @@ var ChessboardGUI = cc.Layer.extend({
       var width = bg.getContentSize().width;
       var height = bg.getContentSize().height;
       this.revertButton.setPosition(cc.winSize.width / 2 + this.mapSize / 2 + bg.getContentSize().width / 2, cc.winSize.height / 2);
-      this.revertButton.setPreferredSize(cc.size(3*width/4,3*height/4));
+      this.revertButton.setPreferredSize(cc.size(3 * width / 4, 3 * height / 4));
 
       lb.setAnchorPoint(0.5, 0.5);
       // lb.setLocalZOrder(10); 
@@ -119,56 +137,78 @@ var ChessboardGUI = cc.Layer.extend({
 
    },
 
+   addSurrenderButton: function () {
+      var lb = new cc.LabelBMFont("Surrender", res.font);
+      var bg = new cc.Scale9Sprite(res.buttonImg);
+      lb.setScale(0.5);
+
+      this.surrenderButton = new cc.ControlButton(lb, bg);
+      // this.revertButton.setPreferredSize(bg.getContentSize());
+
+      var width = bg.getContentSize().width;
+      var height = bg.getContentSize().height;
+      this.surrenderButton.setPosition(cc.winSize.width / 2 + this.mapSize / 2 + bg.getContentSize().width / 2, cc.winSize.height / 2 -
+         lb.height);
+      this.surrenderButton.setPreferredSize(cc.size(3 * width / 4, 3 * height / 4));
+
+      lb.setAnchorPoint(0.5, 0.5);
+      // lb.setLocalZOrder(10); 
+      this.addChild(this.surrenderButton);
+
+      // this.revertButton.addTarget
+      this.surrenderButton.addTargetWithActionForControlEvents(this, this.sendResult.bind(this, (this.playerSide + 1) % 2), cc.CONTROL_EVENT_TOUCH_UP_INSIDE)
+
+   },
+
    sendRevertRequest: function () {
 
       if (this.turn == 0)
-      return; 
-      if (selfPlay){
-         
-         return; 
+         return;
+      if (selfPlay) {
+
+         return;
       }
       var database = firebase.database();
-     
+
       var req = {};
-      
-      req["turn"] = this.turn - 1; 
-      
+
+      req["turn"] = this.turn - 1;
+
       req["player"] = this.playerSide;
-   
+
       req["processed"] = false;
-     
+
       database.ref("room/" + roomID + "/revertReq/").set(req);
    },
-   sendChangeType: function(chess){
-      if (selfPlay)
-      {
-         return; 
+   sendChangeType: function (chess) {
+      if (selfPlay) {
+         return;
       }
-      var database = firebase.database(); 
+      var database = firebase.database();
       var req = {};
-      var pos = getBoardPositionFromTag(chess.tag); 
-      req.x =pos.x; 
-      req.y = pos.y; 
-      req.chessType = chess.chessType; 
-      req.player = this.playerSide; 
-      database.ref("room/"+roomID+"/setTypeReq").push().set(req);
-   }, 
-   listenForTypeChange: function(){
-      var database = firebase.database(); 
-      database.ref("room/"+roomID+"/setTypeReq").on('child_added',function(snapshot){
-         if (snapshot!= null){
-            var value = snapshot.val(); 
-            if (value != null && value.player != ChessboardGUIInstance.playerSide){
-               var chess = ChessboardGUIInstance.getChessAtChessboardPosition(value.x,value.y); 
-               ChessboardGUIInstance.changeType(chess,value.chessType); 
+      var pos = getBoardPositionFromTag(chess.tag);
+      req.x = pos.x;
+      req.y = pos.y;
+      req.chessType = chess.chessType;
+      req.player = this.playerSide;
+      database.ref("room/" + roomID + "/setTypeReq").push().set(req);
+   },
+   listenForTypeChange: function () {
+      var database = firebase.database();
+      database.ref("room/" + roomID + "/setTypeReq").on('child_added', function (snapshot) {
+         if (snapshot != null) {
+            var value = snapshot.val();
+            if (value != null && value.player != ChessboardGUIInstance.playerSide) {
+               var chess = ChessboardGUIInstance.getChessAtChessboardPosition(value.x, value.y);
+               ChessboardGUIInstance.changeType(chess, value.chessType);
             }
          }
       })
    },
-   changeType: function(chess,chessType){
+   changeType: function (chess, chessType) {
       var x = Math.floor(chess.tag / 13);
       var y = chess.tag % 13;
-      GameLogic.setType(x,y,chessType); 
+      GameLogic.setType(x, y, chessType);
       chess.setType(chessType, chess.player);
       chess.promoted = true;
    },
@@ -184,56 +224,54 @@ var ChessboardGUI = cc.Layer.extend({
    processRevertRequest: function (turn, player, processed) {
       if (processed == false && player != this.playerSide) {
          this.showRevertRequestDialog(turn, player, processed);
-      } else if (processed == (this.playerSide+1)%2) {
+      } else if (processed == (this.playerSide + 1) % 2) {
          this.performRevert(turn, player, "Done");
       } else if (processed == "Not accepted") {
          this.onRevertDeclined();
       }
-      
+
    },
-   performRevert: function(turn,player,processed){
+   performRevert: function (turn, player, processed) {
       var database = firebase.database();
       isChessboardTouchable = false;
-      database.ref("room/"+roomID+"/"+turn).once('value').then(function(snapshot){
-         if (snapshot != null){
+      database.ref("room/" + roomID + "/" + turn).once('value').then(function (snapshot) {
+         if (snapshot != null) {
             var value = snapshot.val();
-            if (value != null){
-               ChessboardGUIInstance.turn = turn; 
-               ChessboardGUIInstance.onReceiveChessMove(value.turn,value.newX,value.newY,value.x,value.y); 
-               ChessboardGUIInstance.turn = turn; 
-               if (value.chessKilledType != "null"){
-                  ChessboardGUIInstance.addChess("whateverType",value.newX,value.newY,value.chessKilledType,(value.turn +1)%2);
+            if (value != null) {
+               ChessboardGUIInstance.turn = turn;
+               ChessboardGUIInstance.onReceiveChessMove(value.turn, value.newX, value.newY, value.x, value.y);
+               ChessboardGUIInstance.turn = turn;
+               if (value.chessKilledType != "null") {
+                  ChessboardGUIInstance.addChess("whateverType", value.newX, value.newY, value.chessKilledType, (value.turn + 1) % 2);
                }
                //ChessboardGUIInstance.turn = turn -1; 
-               if (processed == "Done")
-               {
-                  database.ref("room/"+roomID+"/revertReq").set(null); 
-               }
-               else database.ref("room/"+roomID+"/revertReq/processed").set(processed); 
-               isChessboardTouchable= true; 
+               if (processed == "Done") {
+                  database.ref("room/" + roomID + "/revertReq").set(null);
+               } else database.ref("room/" + roomID + "/revertReq/processed").set(processed);
+               isChessboardTouchable = true;
             }
          }
       });
-   }, 
-   showRevertRequestDialog: function (turn, player, processed) {
-      this.dialog = new RevertRequestDialog(this.onAcceptToRevert.bind(this,turn,player,processed),
-                                          this.onPlayerDeclineToRevert.bind(this,turn,player,processed)); 
-      isDialogOn = true; 
-      this.addChild(this.dialog,1000);
    },
-   onAcceptToRevert: function(turn,player,processed){
+   showRevertRequestDialog: function (turn, player, processed) {
+      this.dialog = new RevertRequestDialog(this.onAcceptToRevert.bind(this, turn, player, processed),
+         this.onPlayerDeclineToRevert.bind(this, turn, player, processed));
+      isDialogOn = true;
+      this.addChild(this.dialog, 1000);
+   },
+   onAcceptToRevert: function (turn, player, processed) {
       // var database = firebase.database();
       // var req = {};
       // req["turn"] = turn;
       // req["player"] = player;
       // req["processed"] = this.player;
       // database.ref("room/" + roomID + "/revertReq/").set(req);
-      cc.log("performRevert"); 
-      this.performRevert(turn,player,this.playerSide); 
+      cc.log("performRevert");
+      this.performRevert(turn, player, this.playerSide);
       this.dialog.removeFromParent(true);
-      
+
    },
-   onPlayerDeclineToRevert: function(turn,player){
+   onPlayerDeclineToRevert: function (turn, player) {
       var database = firebase.database();
       var req = {};
       req["turn"] = turn;
@@ -275,7 +313,7 @@ var ChessboardGUI = cc.Layer.extend({
       this.addChess(res.blackKing, cc.p(1, 5), CHESS_TYPE.KING, PLAYER.BLACK);
 
       randomDemote.init(this.chessObjects, this.logicChessboard);
-      GameLogic.setBoard(); 
+      GameLogic.setBoard();
    },
    scaleAllBy: function (scale) {
       this.setScale(scale);
@@ -319,8 +357,9 @@ var ChessboardGUI = cc.Layer.extend({
       newChess.setPosition(chessPos);
       this.mapNode.addChild(newChess, 2, this.getTagFromXY(position.x, position.y));
 
-      var greenBox = new cc.Sprite(res.green, cc.rect(0, 0, this.tileSize, this.tileSize));
-
+      // var greenBox = new cc.Sprite(res.green, cc.rect(0, 0, this.tileSize, this.tileSize));
+      var greenBox = new cc.Scale9Sprite(res.green); 
+      greenBox.setPreferredSize(cc.size(this.tileSize,this.tileSize));
       greenBox.setOpacity(180);
       greenBox.setAnchorPoint(1, 1);
       greenBox.setPosition(chessPos);
@@ -354,12 +393,25 @@ var ChessboardGUI = cc.Layer.extend({
       // chessKilled.setVisible(false);
       if (CHESS_PRIORITY[chessKiller.chessType] < CHESS_PRIORITY[chessKilled.chessType]) {
          if (chessKiller.chessType != CHESS_TYPE.KING && chessKilled.chessType != CHESS_TYPE.KING)
-               showPromoteDialog(chessKiller, chessKilled, randomDemote);
+            showPromoteDialog(chessKiller, chessKilled, randomDemote);
       } else if (chessKilled.chessType == CHESS_TYPE.KING) {
-
+         {
+            this.sendResult((chessKilled.player + 1) % 2);
+         }
       }
-      chessKilled.removeFromParent(true); 
+      chessKilled.removeFromParent(true);
 
+   },
+   sendResult: function (player) {
+      if (selfPlay) {
+         if (player != this.playerSide) {
+            showLoseDialog();
+         } else showWinDialog();
+         return;
+      }
+      var req = {};
+      req.playerWin = player;
+      firebase.database().ref("room/" + roomID + "/gameResult").set(req);
    },
    isValidMove: function (chess, x, y, newX, newY, logicChessboard, turn) {
       //if the player pick his chess pieces, not his opponent' 
@@ -385,11 +437,10 @@ var ChessboardGUI = cc.Layer.extend({
       this.sendMoveRequest(this.turn, x, y, newX, newY, chessType);
    },
    sendMoveRequest: function (turn, x, y, newX, newY, chessKilled) {
-      if (selfPlay)
-         {
-            this.onReceiveChessMove(turn, x, y, newX, newY, chessKilled);
-            return; 
-         }
+      if (selfPlay) {
+         this.onReceiveChessMove(turn, x, y, newX, newY, chessKilled);
+         return;
+      }
       var database = firebase.database();
       var req = {};
       req["turn"] = turn;
@@ -406,23 +457,23 @@ var ChessboardGUI = cc.Layer.extend({
    onReceiveChessMove: function (turn, x, y, newX, newY, chessKilled) {
       cc.log("client turn: ", this.turn, "server:", turn, x, y, newX, newY);
       firebase.database().ref("room/" + roomID + "/" + turn).off();
-      
+
       if (this.turn == turn) {
          var player = this.turn % 2;
          var chess = this.getChessAtChessboardPosition(x, y);
          var newPosition = this.calculatePosition(newX, newY);
          var chessDes = this.getChessAtChessboardPosition(newX, newY);
-         GameLogic.userMove(x,y,newX,newY); 
+         GameLogic.userMove(x, y, newX, newY);
          if (chess == null)
-            return; 
+            return;
          if (chessDes != null) {
-            chessDes.setTag(-chessDes.tag); 
+            chessDes.setTag(-chessDes.tag);
             this.removeChess(chessDes, chess);
          }
          this.logicChessboard[x][y] = PLAYER.EMPTY;
          this.logicChessboard[newX][newY] = {};
-         this.logicChessboard[newX][newY].color  =player; 
-         this.logicChessboard[newX][newY].type =  chess.chessType
+         this.logicChessboard[newX][newY].color = player;
+         this.logicChessboard[newX][newY].type = chess.chessType
          chess.setPosition(newPosition);
          chess.setTag(this.getTagFromXY(newX, newY));
          chess.greenBox.setPosition(newPosition);
@@ -433,7 +484,7 @@ var ChessboardGUI = cc.Layer.extend({
       }
    },
    listenForChessMoveFromServer: function () {
-      cc.log("listenForChessMoveFromServer", this.turn);
+      // cc.log("listenForChessMoveFromServer", this.turn);
 
       if (this.turn % 2 == this.playerSide) {
          this.yourTurnLabel.setVisible(true)
@@ -464,7 +515,7 @@ var ChessboardGUI = cc.Layer.extend({
          return false;
 
       if (!isChessboardTouchable) {
-         cc.log("Not touchable")
+         // cc.log("Not touchable")
          return false;
       }
 
@@ -472,11 +523,11 @@ var ChessboardGUI = cc.Layer.extend({
       //TARGET here is the layer itself; 
       var target = event.getCurrentTarget();
       var position = event.getLocation();
-      if (target.turn % 2 != target.playerSide && position.x && !selfPlay) {
-         target.showNotYourTurnDialog();
-         return false;
-      }
-      cc.log("On user move chess");
+
+
+
+
+      // cc.log("On user move chess");
       position = target.chessboardNode.convertToNodeSpace(position);
       var stillInChessboard = true;
       var clickPosition = target.calculateScreenPosition(position.x, position.y);
@@ -487,31 +538,72 @@ var ChessboardGUI = cc.Layer.extend({
             return false;
          return true;
       };
+      if (!isValidPosition(clickPosition)) {
+         return;
+      }
+      if (target.turn % 2 != target.playerSide && position.x && !selfPlay) {
+         target.showNotYourTurnDialog();
+         return false;
+      }
 
-      if (isValidPosition(clickPosition) && target.selectedChess == null) {
+      if (target.selectedChess == null) {
          target.selectedChess = target.getChessAtChessboardPosition(clickPosition.x, clickPosition.y);
          if (target.selectedChess != null) {
             var isRightTurn = (target.turn % 2) == target.logicChessboard[clickPosition.x][clickPosition.y].color;
             if (!isRightTurn) {
                target.selectedChess = null;
-               cc.log("NOT RIGHT TURN, Bastard")
+               target.hidePossibleMove.bind(target)();
+               // cc.log("NOT RIGHT TURN, Bastard")
                return false;
             }
             target.selectedChess.greenBox.setVisible(true);
+            target.showPossibleMove.bind(target,clickPosition)();
 
          }
-         cc.log("Selected ....")
+         // cc.log("Selected ....")
          return false;
       }
-      if (isValidPosition(clickPosition) && target.selectedChess != null) {
+      if (target.selectedChess != null) {
          var oldPos = target.getBoardPositionFromTag(target.selectedChess.getTag());
          var newPos = target.calculateScreenPosition(position.x, position.y);
          var currentPlayer = target.turn % 2;
          target.chessMove(oldPos.x, oldPos.y, newPos.x, newPos.y, currentPlayer);
          target.selectedChess.greenBox.setVisible(false);
+         target.hidePossibleMove.bind(target)();
          target.selectedChess = null;
       }
       return true;
+   },
+   showPossibleMove: function (position) {
+      var chess = this.selectedChess;
+      var possibleMoves = MoveRecom.getPossibleMove(position.x, position.y, chess.chessType, this.logicChessboard);
+      this.numGreenBoxUse = 0;
+      for (var i = 0; i < possibleMoves.length; ++i) {
+         var chessPos = this.calculatePosition(possibleMoves[i].x, possibleMoves[i].y);
+         var greenBox = this.getGreenBox();
+         greenBox.setPosition(chessPos);
+         greenBox.setVisible(true);
+      }
+   },
+   hidePossibleMove: function (position) {
+      for (var i = 0; i < this.greenBoxPool.length; ++i) {
+         this.greenBoxPool[i].setVisible(false);
+      };
+      this.numGreenBoxUse = 0;
+   },
+   getGreenBox: function () {
+      this.numGreenBoxUse += 1;
+      if (this.numGreenBoxUse >= this.greenBoxPool.length) {
+         var greenBox = new cc.Scale9Sprite(res.green);
+         greenBox.setPreferredSize(cc.size(this.tileSize,this.tileSize));
+         greenBox.setOpacity(180);
+         greenBox.setAnchorPoint(1, 1);
+         // greenBox.setPosition(chessPos);
+         greenBox.setVisible(false);
+         this.mapNode.addChild(greenBox, 1);
+         this.greenBoxPool.push(greenBox);
+      }
+      return (this.greenBoxPool[this.numGreenBoxUse - 1]);
    },
    initCodeForChessMoving: function (self) {
       self = this;

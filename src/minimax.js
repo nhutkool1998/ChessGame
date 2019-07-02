@@ -86,7 +86,7 @@ GameLogic.getPossibleMoves = function () { // trả về 1 array các bước đ
                 }
         }
     }
-    return null;
+    return moves;
 };
 GameLogic.tryMove = function (move) { // move giả trên logic của bàn cờ
     return null;

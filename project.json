@@ -19,6 +19,7 @@
         "src/app.js", 
         "src/demoteStrategy.js",
         "src/startGameScreen.js",
-        "src/minimax.js"
+        "src/minimax.js",
+        "src/move_suggest.js"
     ]
 }

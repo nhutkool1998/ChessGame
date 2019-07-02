@@ -203,7 +203,7 @@ var PromoteDialog = cc.Layer.extend({
 })
 
 var WinDialog = cc.Layer.extend({
-    ctor: function () {
+    ctor: function (isGameWon) {
         this._super();
 
         this.notifNode = new cc.Node();
@@ -216,17 +216,13 @@ var WinDialog = cc.Layer.extend({
         this.transparentBackground.setAnchorPoint(0, 0);
         this.addChild(this.transparentBackground, 0);
 
-        var bg = new cc.Sprite(res.notif);
+        var bg;  
+        if (isGameWon) 
+        bg = new cc.Sprite(res.win);
+        else bg = new cc.Sprite(res.lose);
         // bg.setScale(3); 
         this.notifNode.addChild(bg, 0, this.BG_TAG);
         bg.setPosition(0, 0);
-
-        bg.setScale(2);
-        var lb = cc.LabelTTF.create('Win!!! Refresh for a new game)', 'Arial', 40, 50, cc.TEXT_ALIGNMENT_CENTER);
-        lb.setColor(new cc.Color(165, 42, 42));
-        this.notifNode.addChild(lb, 1, this.LB_TAG);
-        lb.setAnchorPoint(0.5, 0.5);
-        lb.setPosition(0, 0);
 
         this.addChild(this.notifNode);
         this.notifNode.setPosition(cc.winSize.width / 2, cc.winSize.height / 2);
@@ -238,10 +234,19 @@ var WinDialog = cc.Layer.extend({
     }
 })
 
+showWinDialog = function(){
+    var dialog = new WinDialog(true); 
+    cc.director.getRunningScene().addChild(dialog,1000); 
+}
+
+showLoseDialog = function(){
+    var dialog = new WinDialog(false); 
+    cc.director.getRunningScene().addChild(dialog,1000); 
+}
+
 var NotYourTurnDialog = cc.Layer.extend({
     ___text: "Not Your Turn",
     ctor: function () {
-
         cc.log("onConstructed");
         this._super();
         isDialogOn = true;
