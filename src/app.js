@@ -74,7 +74,6 @@ var ChessboardGUI = cc.Layer.extend({
       this.addChild(this.mapNode);
 
 
-
       this.chessboardNode = new cc.Node();
       this.chessboardNode.setContentSize(256, 256);
 
@@ -93,6 +92,7 @@ var ChessboardGUI = cc.Layer.extend({
 
       this.listenForChessMoveFromServer();
       this.listenForRevertRequest();
+      this.listenForTypeChange(); 
       this.removeFromParent(true);
       return true;
    },
@@ -124,12 +124,39 @@ var ChessboardGUI = cc.Layer.extend({
       if (this.turn == 0)
          return; 
       var req = {};
-      req["turn"] = this.turn;
+      
+      req["turn"] = this.turn - 1; 
+      
       req["player"] = this.playerSide;
    
       req["processed"] = false;
      
       database.ref("room/" + roomID + "/revertReq/").set(req);
+   },
+   sendChangeType: function(chess){
+      var database = firebase.database(); 
+      var req = {};
+      req.x =chess.x; 
+      req.y = chess.y; 
+      req.chessType = chess.chessType; 
+      req.player = this.player; 
+      database.ref("room/"+roomID+"/setTypeReq").push().set(req);
+   }, 
+   listenForTypeChange: function(){
+      var database = firebase.database(); 
+      database.ref("room/"+roomID+"/setTypeReq").on('child_added',function(snapshot){
+         if (snapshot!= null){
+            var value = snapshot.val(); 
+            if (value != null && value.player != ChessboardGUIInstance.playerSide){
+               var chess = ChessboardGUIInstance.getChessAtChessboardPosition(value.x,value.y); 
+               ChessboardGUIInstance.changeType(chess,value.chessType); 
+            }
+         }
+      })
+   },
+   changeType: function(chess,chessType){
+      chess.setType(chessType, chess.player);
+      chess.promoted = true;
    },
    listenForRevertRequest: function () {
       var database = firebase.database();
@@ -143,14 +170,12 @@ var ChessboardGUI = cc.Layer.extend({
    processRevertRequest: function (turn, player, processed) {
       if (processed == false && player != this.playerSide) {
          this.showRevertRequestDialog(turn, player, processed);
-      } else if ( processed == "Accepted" && player == this.playerSide) {
-         this.performRevert(turn, player, 1);
-      } else if (processed == "Not accepted" && player == this.playerSide) {
+      } else if (processed == (this.playerSide+1)%2) {
+         this.performRevert(turn, player, "Done");
+      } else if (processed == "Not accepted") {
          this.onRevertDeclined();
       }
-      else if (processed == 1 && player != this.playerSide){
-         this.performRevert(turn,player,"Done"); 
-      }
+      
    },
    performRevert: function(turn,player,processed){
       var database = firebase.database();
@@ -159,30 +184,40 @@ var ChessboardGUI = cc.Layer.extend({
          if (snapshot != null){
             var value = snapshot.val();
             if (value != null){
-               ChessboardGUIInstance.onReceiveChessMove(value.newX,value.newY,value.x,value.y,value.turn%2); 
+               ChessboardGUIInstance.turn = turn; 
+               ChessboardGUIInstance.onReceiveChessMove(value.turn,value.newX,value.newY,value.x,value.y); 
+               ChessboardGUIInstance.turn = turn; 
                if (value.chessKilledType != "null"){
-                  var chess = ChessboardGUIInstance.mapNode.getChildByTag(-1*ChessboardGUIInstance.getTagFromXY(x, y));
-                  chess.setVisible(true); 
+                  ChessboardGUIInstance.addChess("whateverType",value.newX,value.newY,value.chessKilledType,(value.turn +1)%2);
                }
-               ChessboardGUIInstance.turn = turn -1; 
-               database.ref("room/"+roomID/+"/revertReq/processed").set(processed); 
+               //ChessboardGUIInstance.turn = turn -1; 
+               if (processed == "Done")
+               {
+                  database.ref("room/"+roomID+"/revertReq").set(null); 
+               }
+               else database.ref("room/"+roomID+"/revertReq/processed").set(processed); 
                isChessboardTouchable= true; 
             }
          }
       });
    }, 
    showRevertRequestDialog: function (turn, player, processed) {
-      var dialog = new RevertRequestDialog(this.onAcceptToRevert.bind(this,turn,player,processed),
+      this.dialog = new RevertRequestDialog(this.onAcceptToRevert.bind(this,turn,player,processed),
                                           this.onPlayerDeclineToRevert.bind(this,turn,player,processed)); 
-      this.addChild(dialog,1000);
+      isDialogOn = true; 
+      this.addChild(this.dialog,1000);
    },
    onAcceptToRevert: function(turn,player,processed){
-      var database = firebase.database();
-      var req = {};
-      req["turn"] = turn;
-      req["player"] = player;
-      req["processed"] = "Accepted";
-      database.ref("room/" + roomID + "/revertReq/").set(req);
+      // var database = firebase.database();
+      // var req = {};
+      // req["turn"] = turn;
+      // req["player"] = player;
+      // req["processed"] = this.player;
+      // database.ref("room/" + roomID + "/revertReq/").set(req);
+      cc.log("performRevert"); 
+      this.performRevert(turn,player,this.playerSide); 
+      this.dialog.removeFromParent(true);
+      
    },
    onPlayerDeclineToRevert: function(turn,player){
       var database = firebase.database();
@@ -191,6 +226,7 @@ var ChessboardGUI = cc.Layer.extend({
       req["player"] = player;
       req["processed"] = "Not Accepted";
       database.ref("room/" + roomID + "/revertReq/").set(req);
+      this.dialog.removeFromParent(true);
    },
    initChessboard: function () {
       this.addChess(res.whiteRook, cc.p(8, 1), CHESS_TYPE.CASTLE, PLAYER.WHITE);
@@ -351,6 +387,8 @@ var ChessboardGUI = cc.Layer.extend({
          var chess = this.getChessAtChessboardPosition(x, y);
          var newPosition = this.calculatePosition(newX, newY);
          var chessDes = this.getChessAtChessboardPosition(newX, newY);
+         if (chess == null)
+            return; 
          if (chessDes != null) {
             chessDes.setTag(-chessDes.tag); 
             this.removeChess(chessDes, chess);

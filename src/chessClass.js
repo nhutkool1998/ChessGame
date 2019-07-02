@@ -66,6 +66,8 @@ var MyChess = ccui.Button.extend({
 showPromoteDialog = function (chess, killedChess, demoteStrategy) {
     if (chess.promoted)
         return;
+    if (ChessboardGUIInstance.turn %2 != ChessboardGUIInstance.playerSide)
+        return; 
     var killedChessNull = false;
     if (killedChess == undefined) {
         //  killedChess = new MyChess(CHESS_TYPE.QUEEN,(chess.player+1)%2,chess.logicChessboard); 
@@ -179,9 +181,11 @@ var PromoteDialog = cc.Layer.extend({
         //     obj.runAction(seq);
         if (this.demoteStrategy)
             this.demoteStrategy.execute(type, chess.player);
-        chess.setType(type, chess.player);
-        chess.promoted = true;
-
+        // chess.setType(type, chess.player);
+        // chess.promoted = true;
+        //send promotion for the other player 
+        ChessboardGUIInstance.sendPromotion(chess); 
+        ChessboardGUIInstance.changeType(chess,type);
 
         this.removeFromParent(true);
     },
@@ -313,7 +317,7 @@ var RevertRequestDialog = cc.Layer.extend({
         bg.setScale(0.5);
         // var lb = cc.LabelTTF.create('Win!!! Refresh for a new game)', 'Arial', 40, 50, cc.TEXT_ALIGNMENT_CENTER);
         var lb = new cc.LabelBMFont("Your opponent request revert a move.\nYes or No?", res.font);
-        lb.setScale(0.25);
+        lb.setScale(0.5);
         lb.setColor(new cc.Color(255, 0, 0));
         this.notifNode.addChild(lb, 1, this.LB_TAG);
         lb.setAnchorPoint(0.5, 0.5);
@@ -321,7 +325,8 @@ var RevertRequestDialog = cc.Layer.extend({
 
         var lbOK = new cc.LabelBMFont("Accept", res.font);
         var lbDeny = new cc.LabelBMFont("Deny", res.font);
-
+        lbOK.setScale(0.5); 
+        lbDeny.setScale(0.5); 
         var buttonBG1 = new cc.Scale9Sprite(res.buttonImg);
         var buttonBG2 = new cc.Scale9Sprite(res.buttonImg);
 
