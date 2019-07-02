@@ -1,6 +1,14 @@
 // reference :
 // https://www.freecodecamp.org/news/simple-chess-ai-step-by-step-1d55a9266977/
 
+//var move = {
+//    color: ,
+//    from: ,
+//    to: ,
+//    flags: ,
+//    type:
+//};
+
 var GameLogic = {};
 GameLogic.setBoard = function (board) {
     this.board = board;
@@ -11,7 +19,7 @@ GameLogic.getPossibleMoves = function () {
 GameLogic.tryMove = function (move) {
     return null;
 };
-GameLogic.reverseMove = function (move) {
+GameLogic.undo = function () {
     return null;
 };
 GameLogic.getBoard = function(){
@@ -40,7 +48,7 @@ var minimax = function (depth, gameLogic, getMax) {
         var move = possibleMoves[i];
         gameLogic.tryMove(move);//
         var value = minimaxAB(depth - 1, gameLogic, -10000, 10000, !getMax); // init alpha = -10^4, beta = 10^4
-        gameLogic.reverseMove(move);
+        gameLogic.undo();
         if(value > bestMoveVal) {
             bestMoveVal = value;
             bestMove = move;
@@ -59,7 +67,7 @@ var minimaxAB = function (depth, gameLogic, alpha, beta, getMax) {
         for (var i = 0; i < possibleMoves.length; i++) {
             gameLogic.tryMove(possibleMoves[i]);
             bestMoveVal = Math.max(bestMoveVal, minimaxAB(depth - 1, gameLogic, alpha, beta, !getMax)); // min
-            gameLogic.reverseMove(possibleMoves[i]);
+            gameLogic.undo();
             alpha = Math.max(alpha, bestMoveVal);
             if(beta <= alpha){
                 return bestMoveVal;
@@ -71,7 +79,7 @@ var minimaxAB = function (depth, gameLogic, alpha, beta, getMax) {
         for(var i = 0; i < possibleMoves.length; i++) {
             gameLogic.tryMove(possibleMoves[i]);
             bestMoveVal = Math.min(bestMoveVal, minimaxAB(depth - 1, gameLogic, alpha, beta, !getMax)); // max
-            gameLogic.reverseMove(possibleMoves[i]);
+            gameLogic.undo();
             beta = Math.min(beta, bestMoveVal);
             if( beta <= alpha) {
                 return bestMoveVal;

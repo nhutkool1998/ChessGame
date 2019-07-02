@@ -35,11 +35,11 @@
       <file leaf-file-name="minimax.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/minimax.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.3476857">
-              <caret line="19" column="33" selection-start-line="19" selection-start-column="33" selection-end-line="19" selection-end-column="33" />
+            <state vertical-scroll-proportion="0.14639397">
+              <caret line="8" column="11" selection-start-line="8" selection-start-column="11" selection-end-line="8" selection-end-column="11" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
-                <element signature="e#2543#2586#0" expanded="false" />
+                <element signature="e#2564#2607#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -491,12 +491,12 @@
       <workItem from="1558108650675" duration="268000" />
       <workItem from="1558110734870" duration="1834000" />
       <workItem from="1562045195632" duration="12000" />
-      <workItem from="1562048429289" duration="4340000" />
+      <workItem from="1562048429289" duration="5759000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="10520000" />
+    <option name="totallyTimeSpent" value="11939000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1066" extended-state="6" />
@@ -590,11 +590,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/minimax.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.3476857">
-          <caret line="19" column="33" selection-start-line="19" selection-start-column="33" selection-end-line="19" selection-end-column="33" />
+        <state vertical-scroll-proportion="0.14639397">
+          <caret line="8" column="11" selection-start-line="8" selection-start-column="11" selection-end-line="8" selection-end-column="11" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
-            <element signature="e#2543#2586#0" expanded="false" />
+            <element signature="e#2564#2607#0" expanded="false" />
           </folding>
         </state>
       </provider>
