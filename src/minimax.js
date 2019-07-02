@@ -5,6 +5,15 @@ var GameLogic = {};
 GameLogic.setBoard = function (board) {
     this.board = board;
 };
+GameLogic.userMove = function(x,y,newX,newY){
+    //TODO: user perform move from (x,y) to (newX,newY)
+    this.board[newX][newY] = this.board[x][y]; 
+    this.board[x][y] = null; 
+};
+//for promote or demote
+GameLogic.setType = function(x,y,newType){
+    this.board[x][y].type = newType; 
+}
 GameLogic.getPossibleMoves = function () {
     return null;
 };

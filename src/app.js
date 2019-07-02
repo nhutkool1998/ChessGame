@@ -155,6 +155,9 @@ var ChessboardGUI = cc.Layer.extend({
       })
    },
    changeType: function(chess,chessType){
+      var x = Math.floor(chess.tag / 13);
+      var y = chess.tag % 13;
+      GameLogic.setType(x,y,chessType); 
       chess.setType(chessType, chess.player);
       chess.promoted = true;
    },
@@ -337,7 +340,7 @@ var ChessboardGUI = cc.Layer.extend({
       chessKilled.setVisible(false);
       if (CHESS_PRIORITY[chessKiller.chessType] < CHESS_PRIORITY[chessKilled.chessType]) {
          if (chessKiller.chessType != CHESS_TYPE.KING && chessKilled.chessType != CHESS_TYPE.KING)
-            showPromoteDialog(chessKiller, chessKilled, randomDemote);
+               showPromoteDialog(chessKiller, chessKilled, randomDemote);
       } else if (chessKilled.chessType == CHESS_TYPE.KING) {
 
       }
@@ -382,6 +385,7 @@ var ChessboardGUI = cc.Layer.extend({
    onReceiveChessMove: function (turn, x, y, newX, newY, chessKilled) {
       cc.log("client turn: ", this.turn, "server:", turn, x, y, newX, newY);
       firebase.database().ref("room/" + roomID + "/" + turn).off();
+      GameLogic.userMove(x,y,newX,newY); 
       if (this.turn == turn) {
          var player = this.turn % 2;
          var chess = this.getChessAtChessboardPosition(x, y);
