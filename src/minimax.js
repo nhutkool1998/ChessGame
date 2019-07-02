@@ -10,16 +10,16 @@
 //};
 
 var GameLogic = {};
-GameLogic.setBoard = function (board) {
+GameLogic.setBoard = function (board) { // lấy bàn cờ 8x8, ô trống bằng null, ô có cờ: {type: , color: }
     this.board = board;
 };
-GameLogic.getPossibleMoves = function () {
+GameLogic.getPossibleMoves = function () { // trả về 1 array các bước đi có thể đi được của tất cả các quân cờ đang nằm trên bàn cờ với format giống var move ở trên.
     return null;
 };
-GameLogic.tryMove = function (move) {
+GameLogic.tryMove = function (move) { // move giả trên logic của bàn cờ
     return null;
 };
-GameLogic.undo = function () {
+GameLogic.undo = function () { // undo bước move giả vừa rồi
     return null;
 };
 GameLogic.getBoard = function(){
@@ -40,6 +40,8 @@ GameLogic.getValue = function(aChess, x, y) {
     }
 
 };
+
+
 var minimax = function (depth, gameLogic, getMax) {
     var possibleMoves = gameLogic.getPossibleMoves();
     var bestMoveVal = -9999;
@@ -54,10 +56,10 @@ var minimax = function (depth, gameLogic, getMax) {
             bestMove = move;
         }
     }
+    return bestMove;
 };
 // alpha beta pruning
 var minimaxAB = function (depth, gameLogic, alpha, beta, getMax) {
-    pCount++;
     if (depth === 0) {
         return -gameLogic.evaluate();
     }
