@@ -1,6 +1,6 @@
 var roomID = 0;
 var PADDING = 10;
-
+var selfPlay = false; 
 
 var StartGameScreen = cc.Layer.extend({
     bg: null,
@@ -68,6 +68,9 @@ var StartGameScreen = cc.Layer.extend({
         var p = {};
         database.ref("room/"+roomID).off();
         var _roomID = this.textField.getString();
+        if (_roomID != roomID + ""){
+            selfPlay = true;
+        }
         p[_roomID] = roomID;
         database.ref("room/").set(p);
         var isWhite = true; 

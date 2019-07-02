@@ -120,9 +120,15 @@ var ChessboardGUI = cc.Layer.extend({
    },
 
    sendRevertRequest: function () {
-      var database = firebase.database();
+
       if (this.turn == 0)
+      return; 
+      if (selfPlay){
+         
          return; 
+      }
+      var database = firebase.database();
+     
       var req = {};
       
       req["turn"] = this.turn - 1; 
@@ -134,12 +140,17 @@ var ChessboardGUI = cc.Layer.extend({
       database.ref("room/" + roomID + "/revertReq/").set(req);
    },
    sendChangeType: function(chess){
+      if (selfPlay)
+      {
+         return; 
+      }
       var database = firebase.database(); 
       var req = {};
-      req.x =chess.x; 
-      req.y = chess.y; 
+      var pos = getBoardPositionFromTag(chess.tag); 
+      req.x =pos.x; 
+      req.y = pos.y; 
       req.chessType = chess.chessType; 
-      req.player = this.player; 
+      req.player = this.playerSide; 
       database.ref("room/"+roomID+"/setTypeReq").push().set(req);
    }, 
    listenForTypeChange: function(){
@@ -264,6 +275,7 @@ var ChessboardGUI = cc.Layer.extend({
       this.addChess(res.blackKing, cc.p(1, 5), CHESS_TYPE.KING, PLAYER.BLACK);
 
       randomDemote.init(this.chessObjects, this.logicChessboard);
+      GameLogic.setBoard(); 
    },
    scaleAllBy: function (scale) {
       this.setScale(scale);
@@ -286,7 +298,9 @@ var ChessboardGUI = cc.Layer.extend({
       }
 
       this.logicChessboard[position.x][position.y] = {};
-      this.logicChessboard[position.x][position.y][type] = player;
+      this.logicChessboard[position.x][position.y].type = type;
+      this.logicChessboard[position.x][position.y].color = player;
+
 
       if (player == PLAYER.BLACK)
          playerString = "black";
@@ -336,21 +350,23 @@ var ChessboardGUI = cc.Layer.extend({
       return null;
    },
    removeChess: function (chessKilled, chessKiller) {
-      chessKilled.greenBox.setVisible(false);
-      chessKilled.setVisible(false);
+      // chessKilled.greenBox.setVisible(false);
+      // chessKilled.setVisible(false);
       if (CHESS_PRIORITY[chessKiller.chessType] < CHESS_PRIORITY[chessKilled.chessType]) {
          if (chessKiller.chessType != CHESS_TYPE.KING && chessKilled.chessType != CHESS_TYPE.KING)
                showPromoteDialog(chessKiller, chessKilled, randomDemote);
       } else if (chessKilled.chessType == CHESS_TYPE.KING) {
 
       }
+      chessKilled.removeFromParent(true); 
+
    },
    isValidMove: function (chess, x, y, newX, newY, logicChessboard, turn) {
-      //if the player pick his chess pieces, not his opponent's
+      //if the player pick his chess pieces, not his opponent' 
       if (x == newX && y == newY)
          return false;
       var player = (turn % 2);
-      if (logicChessboard[x][y][chess.chessType] != player)
+      if (logicChessboard[x][y].color != player)
          return false;
       var result = chess.checkRule(x, y, newX, newY, logicChessboard, turn);
       return result;
@@ -369,6 +385,11 @@ var ChessboardGUI = cc.Layer.extend({
       this.sendMoveRequest(this.turn, x, y, newX, newY, chessType);
    },
    sendMoveRequest: function (turn, x, y, newX, newY, chessKilled) {
+      if (selfPlay)
+         {
+            this.onReceiveChessMove(turn, x, y, newX, newY, chessKilled);
+            return; 
+         }
       var database = firebase.database();
       var req = {};
       req["turn"] = turn;
@@ -385,12 +406,13 @@ var ChessboardGUI = cc.Layer.extend({
    onReceiveChessMove: function (turn, x, y, newX, newY, chessKilled) {
       cc.log("client turn: ", this.turn, "server:", turn, x, y, newX, newY);
       firebase.database().ref("room/" + roomID + "/" + turn).off();
-      GameLogic.userMove(x,y,newX,newY); 
+      
       if (this.turn == turn) {
          var player = this.turn % 2;
          var chess = this.getChessAtChessboardPosition(x, y);
          var newPosition = this.calculatePosition(newX, newY);
          var chessDes = this.getChessAtChessboardPosition(newX, newY);
+         GameLogic.userMove(x,y,newX,newY); 
          if (chess == null)
             return; 
          if (chessDes != null) {
@@ -399,7 +421,8 @@ var ChessboardGUI = cc.Layer.extend({
          }
          this.logicChessboard[x][y] = PLAYER.EMPTY;
          this.logicChessboard[newX][newY] = {};
-         this.logicChessboard[newX][newY][chess.chessType] = player;
+         this.logicChessboard[newX][newY].color  =player; 
+         this.logicChessboard[newX][newY].type =  chess.chessType
          chess.setPosition(newPosition);
          chess.setTag(this.getTagFromXY(newX, newY));
          chess.greenBox.setPosition(newPosition);
@@ -449,7 +472,7 @@ var ChessboardGUI = cc.Layer.extend({
       //TARGET here is the layer itself; 
       var target = event.getCurrentTarget();
       var position = event.getLocation();
-      if (target.turn % 2 != target.playerSide && position.x ) {
+      if (target.turn % 2 != target.playerSide && position.x && !selfPlay) {
          target.showNotYourTurnDialog();
          return false;
       }
@@ -468,7 +491,7 @@ var ChessboardGUI = cc.Layer.extend({
       if (isValidPosition(clickPosition) && target.selectedChess == null) {
          target.selectedChess = target.getChessAtChessboardPosition(clickPosition.x, clickPosition.y);
          if (target.selectedChess != null) {
-            var isRightTurn = (target.turn % 2) == target.logicChessboard[clickPosition.x][clickPosition.y][target.selectedChess.chessType];
+            var isRightTurn = (target.turn % 2) == target.logicChessboard[clickPosition.x][clickPosition.y].color;
             if (!isRightTurn) {
                target.selectedChess = null;
                cc.log("NOT RIGHT TURN, Bastard")

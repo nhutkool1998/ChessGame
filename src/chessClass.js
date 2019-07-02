@@ -50,7 +50,9 @@ var MyChess = ccui.Button.extend({
         var x = Math.floor(this.tag / 13);
         var y = this.tag % 13;
         this.logicChessboard[x][y] = {};
-        this.logicChessboard[x][y][chessType] = player;
+        // this.logicChessboard[x][y][chessType] = player;
+        this.logicChessboard[x][y].type = chessType; 
+        this.logicChessboard[x][y].color = player; 
         this._setRule(chessType);
         var playerString;
         if (player == PLAYER.BLACK)
@@ -73,7 +75,7 @@ showPromoteDialog = function (chess, killedChess, demoteStrategy) {
         //  killedChess = new MyChess(CHESS_TYPE.QUEEN,(chess.player+1)%2,chess.logicChessboard); 
         //killedChess.setVisible(false); 
         //cc.director.getRunningScene().addChild(killedChess, -1);
-        killedChess = [];
+        killedChess = {};
         killedChess.chessType = CHESS_TYPE.QUEEN;
     }
     var dialog = new PromoteDialog(chess, killedChess, demoteStrategy);
@@ -184,8 +186,9 @@ var PromoteDialog = cc.Layer.extend({
         // chess.setType(type, chess.player);
         // chess.promoted = true;
         //send promotion for the other player 
-        ChessboardGUIInstance.sendPromotion(chess); 
         ChessboardGUIInstance.changeType(chess,type);
+        ChessboardGUIInstance.sendChangeType(chess); 
+
 
         this.removeFromParent(true);
     },

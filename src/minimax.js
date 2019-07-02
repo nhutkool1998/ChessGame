@@ -11,15 +11,15 @@
 
 var GameLogic = {};
 GameLogic.setBoard = function (board) { // lấy bàn cờ 8x8, ô trống bằng null, ô có cờ: {type: , color: }
-    this.board = {};
+    GameLogic.board = {};
     for (var i = 1; i <= 8; ++i) {
-        this.board[i] = {}
+        GameLogic.board[i] = {}
         for (var j = 1; j <= 8; ++j) {
-            this.board[i][j] = null;
+            GameLogic.board[i][j] = null;
         }
     }
     var putChess = function (point, type, color) {
-        GameLogic[point.x][point.y] = {};
+        GameLogic.board[point.x][point.y] = {};
         GameLogic.board[point.x][point.y].type = type;
         GameLogic.board[point.x][point.y].color = color;
     }
@@ -56,13 +56,17 @@ GameLogic.setBoard = function (board) { // lấy bàn cờ 8x8, ô trống bằn
 };
 GameLogic.userMove = function (x, y, newX, newY) {
     //TODO: user perform move from (x,y) to (newX,newY)
-    this.board[newX][newY].type = this.board[x][y].type;
-    this.board[newX][newY].color = this.board[x][y].color;
-    this.board[x][y] = null;
+    // cc.log(GameLogic.board[x][y],x,y,newX,newY); 
+    // GameLogic.board[newX] = 
+    GameLogic.board[newX][newY] = {}; 
+
+    GameLogic.board[newX][newY].type = GameLogic.board[x][y].type;
+    GameLogic.board[newX][newY].color = GameLogic.board[x][y].color;
+    GameLogic.board[x][y] = null;
 };
 //for promote or demote
 GameLogic.setType = function (x, y, newType) {
-    this.board[x][y].type = newType;
+    GameLogic.board[x][y].type = newType;
 }; 
 
 GameLogic.getPossibleMoves = function () { // trả về 1 array các bước đi có thể đi được của tất cả các quân cờ đang nằm trên bàn cờ với format giống var move ở trên.
@@ -71,7 +75,15 @@ GameLogic.getPossibleMoves = function () { // trả về 1 array các bước đ
         for (var j = 1; j <=8;++j){
             var chess = ChessboardGUIInstance.getChessAtChessboardPosition(i,j); 
             if (chess != null)  
-                moves.push(MoveRecom[chess.chessType]()); 
+                // moves.push(MoveRecom[chess.chessType](i,j,GameLogic.board)); 
+                var desArray = MoveRecom.getPossibleMove(i,j,chess.chessType,GameLogic.board); 
+                for (var t = 0; t < desArray.length;++i){
+                    var move = {}; 
+                    move.from = cc.p(x,y);
+                    move.to = desArray[i];
+                    move.color = chess.player; 
+                    move.type = chess.chessType;
+                }
         }
     }
     return null;
@@ -83,13 +95,13 @@ GameLogic.undo = function () { // undo bước move giả vừa rồi
     return null;
 };
 GameLogic.getBoard = function () {
-    return this.board;
+    return GameLogic.board;
 };
 GameLogic.evaluate = function () {
     var ans = 0;
     for (var i = 0; i < 8; i++) {
         for (var j = 0; j < 8; j++) {
-            ans += this.getValue(this.board[i][j], i, j);
+            ans += this.getValue(GameLogic.board[i][j], i, j);
         }
     }
     return ans;

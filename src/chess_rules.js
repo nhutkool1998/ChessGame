@@ -22,7 +22,7 @@ var SPRITE_TAG = {
     GREEN_BOX_TAG: 100
 };
 var PLAYER = {
-    EMPTY: -1,
+    EMPTY: null,
     BLACK: 0,
     WHITE: 1
 };
@@ -33,9 +33,9 @@ var willnotKillTeammate = function () {
         //cc.log("will NOT kill team mate");
         if (logicChessboard[newX][newY] == PLAYER.EMPTY)
             return true;
-        var key = Object.keys(logicChessboard[newX][newY])[0];
-        var type = Object.keys(logicChessboard[x][y])[0]
-        if (logicChessboard[x][y][type] != logicChessboard[newX][newY][key]) {
+        var key = logicChessboard[newX][newY].color;
+        var type = logicChessboard[x][y].color
+        if (key != type) {
             //cc.log("will NOT kill team mate")
             return true;
         }
@@ -165,17 +165,17 @@ WesternChessRule[CHESS_TYPE.PAWN] = function () {
             }
 
             //if can kill, then crossline is ok¡
-            var chessTypeAtDestination = Object.keys(logicChessboard[newX][newY])[0];
+            // var chessTypeAtDestination = Object.keys(logicChessboard[newX][newY])[0];
 
+            // var chessTypeAtDestination = logicChessboard[newX][newY] == null? null : logicChessboard[newX][newY].type; 
             if (deltaX == 1 && Math.abs(deltaY) == 1) {
-                var oppositePlayer = (turn + 1) % 2
-                if (logicChessboard[newX][newY][chessTypeAtDestination] == oppositePlayer)
+                var oppositePlayer = (turn + 1) % 2; 
+                if (logicChessboard[newX][newY].color== oppositePlayer)
                     return true;
             }
             //if cannot kill and the position is occupied, then return false; 
             if (logicChessboard[newX][newY] != PLAYER.EMPTY) {
              
-
                 return false;
             }
 
@@ -202,7 +202,7 @@ WesternChessRule[CHESS_TYPE.PAWN] = function () {
         }
         var result = __checkRule(x, y, newX, newY, logicChessboard, turn, chessObject, chessObject);
         if (result) {
-            if (newX == 1 || newX == 8)
+            if (newX == 1 || newX == 8 && chessObject != null)
                 showPromoteDialog(chessObject);
         }
         return result;
