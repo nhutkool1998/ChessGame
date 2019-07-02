@@ -23,6 +23,8 @@ var DemoteStrategy = cc.Class.extend({
     },
     _demote: function(chessObject){
         chessObject.setType(CHESS_TYPE.PAWN); 
+        ChessboardGUIInstance.sendChangeType(chessObject);
+
     }
 });
 
