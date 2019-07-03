@@ -166,7 +166,7 @@ GameLogic.getValue = function (piece, x, y) {
     };
 
     var absoluteValue = getAbsoluteValue(piece, piece.color === PLAYER.BLACK, x, y);
-    return piece.color === PLAYER.WHITE ? absoluteValue : -absoluteValue;
+    return piece.color === PLAYER.BLACK ? absoluteValue : -absoluteValue;
 };
 // };
 

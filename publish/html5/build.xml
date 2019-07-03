@@ -300,6 +300,9 @@
                 <file name="src/chessClass.js"/>
                 <file name="src/app.js"/>
                 <file name="src/demoteStrategy.js"/>
+                <file name="src/startGameScreen.js"/>
+                <file name="src/minimax.js"/>
+                <file name="src/move_suggest.js"/>
                 <file name="main.js"/>
 
             </sources>
