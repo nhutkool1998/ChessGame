@@ -76,13 +76,16 @@ GameLogic.setType = function (x, y, newType) {
     GameLogic.board[x][y].type = newType;
 };
 
-GameLogic.getPossibleMoves = function () { // trả về 1 array các bước đi có thể đi được của tất cả các quân cờ đang nằm trên bàn cờ với format giống var move ở trên.
+GameLogic.getPossibleMoves = function (color) { // trả về 1 array các bước đi có thể đi được của tất cả các quân cờ đang nằm trên bàn cờ với format giống var move ở trên.
     var moves = [];
     for (var i = 1; i <= 8; ++i) {
         for (var j = 1; j <= 8; ++j) {
             // var chess = ChessboardGUIInstance.getChessAtChessboardPosition(i, j);
             var chess = GameLogic.board[i][j];
-            if (chess != null) {
+            var isOK =true; 
+            if (color!= undefined && chess!=null)
+                isOK = chess.color == color; 
+            if (chess != null && isOK) {
                 // moves.push(MoveRecom[chess.chessType](i,j,GameLogic.board)); 
                 var desArray = MoveRecom.getPossibleMove(i, j, chess.type, GameLogic.board);
                 for (var t = 0; t < desArray.length; ++t) {
@@ -171,14 +174,14 @@ GameLogic.getValue = function (piece, x, y) {
 // };
 
 
-var minimax = function (depth, gameLogic, getMax) {
-    var possibleMoves = gameLogic.getPossibleMoves();
+var minimax = function (depth, gameLogic, getMax,color) {
+    var possibleMoves = gameLogic.getPossibleMoves(color);
     var bestMoveVal = -9999;
     var bestMove;
     for (var i = 0; i < possibleMoves.length; i++) {
         var move = possibleMoves[i];
         var savedMove = gameLogic.tryMove(move); //
-        var value = minimaxAB(depth - 1, gameLogic, -10000, 10000, !getMax); // init alpha = -10^4, beta = 10^4
+        var value = minimaxAB(depth - 1, gameLogic, -10000, 10000, !getMax,color); // init alpha = -10^4, beta = 10^4
         gameLogic.undo(savedMove,move);
         if (value > bestMoveVal) {
             bestMoveVal = value;
@@ -188,17 +191,17 @@ var minimax = function (depth, gameLogic, getMax) {
     return bestMove;
 };
 // alpha beta pruning
-var minimaxAB = function (depth, gameLogic, alpha, beta, getMax) {
+var minimaxAB = function (depth, gameLogic, alpha, beta, getMax,color) {
     // cc.log("minimaxAB");
     if (depth === 0) {
         return -gameLogic.evaluate();
     }
-    var possibleMoves = gameLogic.getPossibleMoves();
+    var possibleMoves = gameLogic.getPossibleMoves(color);
     if (getMax == true) { // max
         var bestMoveVal = -9999;
         for (var i = 0; i < possibleMoves.length; i++) {
             var savedMove = gameLogic.tryMove(possibleMoves[i]);
-            bestMoveVal = Math.max(bestMoveVal, minimaxAB(depth - 1, gameLogic, alpha, beta, !getMax)); // min
+            bestMoveVal = Math.max(bestMoveVal, minimaxAB(depth - 1, gameLogic, alpha, beta, !getMax,color)); // min
             gameLogic.undo(savedMove,possibleMoves[i]);
             alpha = Math.max(alpha, bestMoveVal);
             if (beta <= alpha) {
@@ -210,7 +213,7 @@ var minimaxAB = function (depth, gameLogic, alpha, beta, getMax) {
         var bestMoveVal = 9999;
         for (var i = 0; i < possibleMoves.length; i++) {
             var savedMove = gameLogic.tryMove(possibleMoves[i]);
-            bestMoveVal = Math.min(bestMoveVal, minimaxAB(depth - 1, gameLogic, alpha, beta, !getMax)); // max
+            bestMoveVal = Math.min(bestMoveVal, minimaxAB(depth - 1, gameLogic, alpha, beta, !getMax,color)); // max
             gameLogic.undo(savedMove,possibleMoves[i]);
             beta = Math.min(beta, bestMoveVal);
             if (beta <= alpha) {

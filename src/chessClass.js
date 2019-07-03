@@ -190,6 +190,9 @@ var PromoteDialog = cc.Layer.extend({
         // chess.promoted = true;
         //send promotion for the other player 
         ChessboardGUIInstance.changeType(chess, type);
+
+
+
         ChessboardGUIInstance.sendChangeType(chess);
 
 
@@ -240,16 +243,50 @@ var WinDialog = cc.Layer.extend({
 showWinDialog = function () {
     var dialog = new WinDialog(true);
     cc.director.getRunningScene().addChild(dialog, 1000);
+
+    var lb = new cc.LabelBMFont("Celebrate!!!", res.font);
+    var buttonBG1 = new cc.Scale9Sprite(res.buttonImg);
+    var btnCelebrate = new cc.ControlButton(lb, buttonBG1);
+    btnCelebrate.setPosition(cc.winSize.width / 2, cc.winSize.height / 2 - 100);
+
+    cc.director.getRunningScene().addChild(btnCelebrate, 1000);
+    var celebrate = function () {
+        var rand = Math.round(Math.random()); 
+        var par = cc.ParticleSystem.create(res["winAnim" + rand]);
+        cc.director.getRunningScene().addChild(par, 1000);
+    }; 
+    btnCelebrate.addTargetWithActionForControlEvents(btnCelebrate, celebrate, cc.CONTROL_EVENT_TOUCH_UP_INSIDE);
+
+
+    
 }
 
 showLoseDialog = function () {
     var dialog = new WinDialog(false);
     cc.director.getRunningScene().addChild(dialog, 1000);
+
+    var lb = new cc.LabelBMFont("Mourn :(", res.font);
+    var buttonBG1 = new cc.Scale9Sprite(res.buttonImg);
+    var btnCelebrate = new cc.ControlButton(lb, buttonBG1);
+    btnCelebrate.setPosition(cc.winSize.width / 2, cc.winSize.height / 2 - 100);
+
+    cc.director.getRunningScene().addChild(btnCelebrate, 1000);
+    var celebrate = function () {
+        // var rand = Math.round(2 + Math.random()); 
+        var par = cc.ParticleSystem.create(res.rainAnim);
+        var par2 = cc.ParticleSystem.create(res.rainAnim);
+        // var par2 
+        par2.setPosition(cc.winSize.width/2,cc.winSize.height/2);
+        cc.director.getRunningScene().addChild(par, 1000);
+        cc.director.getRunningScene().addChild(par2, 1001);
+
+    }; 
+    btnCelebrate.addTargetWithActionForControlEvents(btnCelebrate, celebrate, cc.CONTROL_EVENT_TOUCH_UP_INSIDE);
 }
 
 var NotYourTurnDialog = cc.Layer.extend({
     ___text: "Not Your Turn",
-    ctor: function (text,scale) {
+    ctor: function (text, scale) {
         cc.log("onConstructed");
         this._super();
         isDialogOn = true;
@@ -270,21 +307,21 @@ var NotYourTurnDialog = cc.Layer.extend({
         this.notifNode.addChild(bg, 0, this.BG_TAG);
         bg.setPosition(0, 0);
         if (scale == undefined)
-            scale = 0.5; 
+            scale = 0.5;
         bg.setScale(scale);
         if (text == undefined) {
             text = "Not your turn!!!";
         }
         // var lb = cc.LabelTTF.create('Win!!! Refresh for a new game)', 'Arial', 40, 50, cc.TEXT_ALIGNMENT_CENTER);
         var lb = new cc.LabelBMFont(text, res.font);
-        lb.setScale(0.5+scale);
+        lb.setScale(0.5 + scale);
         lb.setColor(new cc.Color(255, 0, 0));
         this.notifNode.addChild(lb, 1, this.LB_TAG);
         lb.setAnchorPoint(0.5, 0.5);
         lb.setPosition(0, 0);
 
         var lb2 = new cc.LabelBMFont("Click to dismiss", res.font1);
-        lb2.setPosition(0, -lb.height*(scale+0.5) + 10);
+        lb2.setPosition(0, -lb.height * (scale + 0.5) + 10);
         this.notifNode.addChild(lb2);
         lb2.setScale(scale);
         lb2.setColor(new cc.Color(165, 42, 42));
@@ -308,7 +345,7 @@ var NotYourTurnDialog = cc.Layer.extend({
 var showDialogYesNo = function (text, _OKBtnEvent, CancelButtonEvent) {
 
     var dialog = new RevertRequestDialog(_OKBtnEvent,
-        CancelButtonEvent, text,1);
+        CancelButtonEvent, text, 1);
     isDialogOn = true;
     cc.director.getRunningScene().addChild(dialog, 1000);
     dialog.buttonDeny.addTargetWithActionForControlEvents(dialog.buttonDeny, dialog.onClick.bind(dialog), cc.CONTROL_EVENT_TOUCH_UP_INSIDE);
@@ -316,16 +353,16 @@ var showDialogYesNo = function (text, _OKBtnEvent, CancelButtonEvent) {
 }
 
 var showDialogNoButton = function (text) {
-    var dialog = new NotYourTurnDialog(text,1);
+    var dialog = new NotYourTurnDialog(text, 1);
     cc.director.getRunningScene().addChild(dialog, 1000);
 }
 
 var RevertRequestDialog = cc.Layer.extend({
-    buttonAccept:null, 
-    buttonDeny:null,
-    
+    buttonAccept: null,
+    buttonDeny: null,
 
-    ctor: function (acceptCallback, denyCallback, text,scale) {
+
+    ctor: function (acceptCallback, denyCallback, text, scale) {
 
         cc.log("onConstructed RevertRequestDialog");
         this._super();
@@ -347,7 +384,7 @@ var RevertRequestDialog = cc.Layer.extend({
         this.notifNode.addChild(bg, 0, this.BG_TAG);
         bg.setPosition(0, 0);
         if (scale == undefined)
-            scale = 0.5; 
+            scale = 0.5;
         bg.setScale(scale);
         if (text == undefined) {
             text = "Your opponent wants to revert a move.\nYes or No?";
@@ -371,20 +408,20 @@ var RevertRequestDialog = cc.Layer.extend({
 
         var buttonBG2 = new cc.Scale9Sprite(res.buttonImg);
         var buttonDeny = new cc.ControlButton(lbDeny, buttonBG2);
-        
+
         buttonAccept.setPreferredSize(cc.size(100, 40));
-        buttonAccept.setPosition(-50, -bg.height*scale + 10);
+        buttonAccept.setPosition(-50, -bg.height * scale + 10);
         buttonDeny.setPreferredSize(cc.size(100, 40));
-        buttonDeny.setPosition(50, -bg.height*scale + 10);
+        buttonDeny.setPosition(50, -bg.height * scale + 10);
 
         this.notifNode.addChild(buttonAccept);
         this.notifNode.addChild(buttonDeny);
 
         buttonDeny.addTargetWithActionForControlEvents(buttonDeny, denyCallback, cc.CONTROL_EVENT_TOUCH_UP_INSIDE);
         buttonAccept.addTargetWithActionForControlEvents(buttonAccept, acceptCallback, cc.CONTROL_EVENT_TOUCH_UP_INSIDE);
-        
+
         this.buttonAccept = buttonAccept;
-        this.buttonDeny = buttonDeny; 
+        this.buttonDeny = buttonDeny;
 
         this.addChild(this.notifNode);
         this.notifNode.setPosition(cc.winSize.width / 2, cc.winSize.height / 2);

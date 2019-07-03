@@ -52,7 +52,12 @@ var res = {
     textbox:"res/textbox.png",
     your_turn:"res/your_turn.png",
     win:"res/win.png",
-    lose: "res/lose.png"
+    lose: "res/lose.png",
+    winAnim0: "res/particle_texture.plist",
+    winAnim1:"res/particle_texture-2.plist", 
+    winAnimPic: "res/particle_texture.png",
+    rainAnim: "res/rain.plist", 
+    rainPic: "res/rain.png"
 };
 
 var g_resources = [];
