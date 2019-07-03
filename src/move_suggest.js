@@ -19,7 +19,10 @@ MoveRecom.getDeltas = {};
 
 MoveRecom.getDeltas[CHESS_TYPE.PAWN] = function () {
     var dx = [1, 2, -1, -2];
-    var res = [];
+    var res = [cc.p(1,1),
+               cc.p(1,-1),
+               cc.p(-1,1),
+                cc.p(-1,-1) ];
     for (var i = 0; i < dx.length; ++i) {
         var temp = {};
         temp.x = dx[i];
@@ -32,7 +35,7 @@ MoveRecom.getDeltas[CHESS_TYPE.PAWN] = function () {
 MoveRecom.getDeltas[CHESS_TYPE.KING] = function () {
     var dx = [1, -1, 0];
     var dy = [1, -1, 0];
-    var res = [];
+    var res = [];   
     for (var i = 0; i < dx.length; ++i) {
         for (var j = 0; j < dy.length; ++j) {
             if (dx != 0 && dy != 0) {

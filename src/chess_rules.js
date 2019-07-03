@@ -151,7 +151,7 @@ WesternChessRule[CHESS_TYPE.PAWN] = function () {
             deltaX = Math.abs(newX - x);
             deltaY = Math.abs(newY - y);
             //pawn cannot go backward 
-            var player = turn % 2;
+            var player = logicChessboard[x][y].color;
             if (player == PLAYER.WHITE) {
                 //cc.log("cannot go backward - white")
                 if (newX > x)
@@ -170,8 +170,9 @@ WesternChessRule[CHESS_TYPE.PAWN] = function () {
 
             // var chessTypeAtDestination = logicChessboard[newX][newY] == null? null : logicChessboard[newX][newY].type; 
             if (deltaX == 1 && Math.abs(deltaY) == 1) {
-                var oppositePlayer = (turn + 1) % 2; 
-                if (logicChessboard[newX][newY].color== oppositePlayer)
+                var oppositePlayer = (player + 1) % 2; 
+                if (logicChessboard[newX][newY] != PLAYER.EMPTY 
+                    && logicChessboard[newX][newY].color== oppositePlayer)
                     return true;
             }
             //if cannot kill and the position is occupied, then return false; 
@@ -181,10 +182,10 @@ WesternChessRule[CHESS_TYPE.PAWN] = function () {
             }
 
             var firstTurn = false;
-            if (turn % 2 == PLAYER.WHITE && x == 7) {
+            if (logicChessboard[x][y].color == PLAYER.WHITE && x == 7) {
                 firstTurn = true;
             }
-            if (turn % 2 == PLAYER.BLACK && x == 2) {
+            if (logicChessboard[x][y].color == PLAYER.BLACK && x == 2) {
                 firstTurn = true;
             }
             if (firstTurn) {

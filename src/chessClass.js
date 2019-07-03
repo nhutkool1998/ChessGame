@@ -66,6 +66,10 @@ var MyChess = ccui.Button.extend({
     }
 });
 showPromoteDialog = function (chess, killedChess, demoteStrategy) {
+    if (selfPlay)
+    {
+        return; 
+    }
     if (chess.promoted)
         return;
     if (ChessboardGUIInstance.turn %2 != ChessboardGUIInstance.playerSide)

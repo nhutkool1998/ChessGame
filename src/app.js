@@ -25,6 +25,8 @@
 var isChessboardTouchable = true;
 var isDialogOn = false;
 var ChessboardGUIInstance = null;
+var DEFAULT_DEPTH = DEFAULT_DEPTH || 3;
+
 var ChessboardGUI = cc.Layer.extend({
    logicChessboard: null,
    mapNode: null,
@@ -55,7 +57,15 @@ var ChessboardGUI = cc.Layer.extend({
       this.yourTurnLabel.setScale(this.mapSize / this.yourTurnLabel.width);
       var lbHeight = this.mapSize / this.yourTurnLabel.width * this.yourTurnLabel.height;
       this.addChild(this.yourTurnLabel, 100);
-      if (isWhitePlayer == true) {
+      if (selfPlay)
+      {
+         this.turn = 0;
+         this.playerSide = PLAYER.BLACK;
+         this.yourTurnLabel.setVisible(true);
+         this.yourTurnLabel.setPosition(cc.winSize.width / 2, cc.winSize.height / 2 - this.mapSize / 2 -
+            lbHeight / 2);
+      }
+      else if (isWhitePlayer == true) {
          this.turn = 0;
          this.playerSide = PLAYER.WHITE;
          this.yourTurnLabel.setVisible(false);
@@ -116,6 +126,8 @@ var ChessboardGUI = cc.Layer.extend({
       });
    },
    addRevertButton: function () {
+      if (selfPlay)
+         return;
       var lb = new cc.LabelBMFont("Revert", res.font);
       var bg = new cc.Scale9Sprite(res.buttonImg);
       lb.setScale(0.5);
@@ -394,9 +406,11 @@ var ChessboardGUI = cc.Layer.extend({
       if (CHESS_PRIORITY[chessKiller.chessType] < CHESS_PRIORITY[chessKilled.chessType]) {
          if (chessKiller.chessType != CHESS_TYPE.KING && chessKilled.chessType != CHESS_TYPE.KING)
             showPromoteDialog(chessKiller, chessKilled, randomDemote);
-      } else if (chessKilled.chessType == CHESS_TYPE.KING) {
+      }
+        if (chessKilled.chessType == CHESS_TYPE.KING) {
          {
             this.sendResult((chessKilled.player + 1) % 2);
+            
          }
       }
       chessKilled.removeFromParent(true);
@@ -474,24 +488,32 @@ var ChessboardGUI = cc.Layer.extend({
          this.logicChessboard[newX][newY] = {};
          this.logicChessboard[newX][newY].color = player;
          this.logicChessboard[newX][newY].type = chess.chessType
-         chess.setPosition(newPosition);
+         // chess.setPosition(newPosition);
+         chess.runAction(cc.moveTo(0.5,newPosition,newPosition)); 
          chess.setTag(this.getTagFromXY(newX, newY));
+         cc.log("newX, newY",newX,newY); 
          chess.greenBox.setPosition(newPosition);
          this.turn = this.turn + 1;
-         this.listenForChessMoveFromServer();
+
+         if (selfPlay && this.turn%2 != this.playerSide)
+         {
+            var move = minimax(DEFAULT_DEPTH,GameLogic,true); 
+            this.onReceiveChessMove(this.turn,move.from.x,move.from.y,move.to.x,move.to.y);
+         }
+         else this.listenForChessMoveFromServer();
          isDialogOn = false;
          // this.turn %=2; 
       }
    },
    listenForChessMoveFromServer: function () {
       // cc.log("listenForChessMoveFromServer", this.turn);
-
+      
       if (this.turn % 2 == this.playerSide) {
          this.yourTurnLabel.setVisible(true)
       } else {
          this.yourTurnLabel.setVisible(false);
       }
-
+      
       var database = firebase.database();
       if (roomID == null)
          return;
