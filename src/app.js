@@ -48,7 +48,7 @@ var ChessboardGUI = cc.Layer.extend({
       this._super();
       ChessboardGUIInstance = this;
       this.mapSize = this.tileSize * this.tileCount;
-
+      isChessboardTouchable = true; 
       // this.yourTurnLabel = new cc.LabelBMFont("YOUR TURN!", res.font);
       // this.yourTurnLabel.setColor(new cc.Color(0, 0, 255));
       // this.yourTurnLabel.setAnchorPoint(0.5, 0.5);
@@ -98,7 +98,7 @@ var ChessboardGUI = cc.Layer.extend({
 
       this.addRevertButton();
       this.addSurrenderButton();
-
+      this.addGuide(); 
       this.initChessboard();
       this.initCodeForChessMoving();
 
@@ -107,7 +107,7 @@ var ChessboardGUI = cc.Layer.extend({
       this.listenForRevertRequest();
       this.listenForTypeChange();
       this.listenForGameResult();
-      this.removeFromParent(true);
+      // this.removeFromParent(true);
       return true;
    },
    listenForGameResult: function () {
@@ -124,6 +124,24 @@ var ChessboardGUI = cc.Layer.extend({
             }
          }
       });
+   },
+   addGuide: function(){
+      var text = "Rank: Pawn < Knight,Bishop,Castle < Queen\n" +  
+               "If a piece kills another piece of higher rank,\n"+
+               "it will be given a chance to be promoted to \n " + 
+               "a higher rank at the expense of one piece of \n" +
+               "that rank being demoted to pawn                "; 
+      if (selfPlay){
+         text = "Revert and Promotion is disabled         \n"
+               + "by your opponent, Peter the Rule Breaker" 
+      }
+      var lb = new cc.LabelBMFont(text, res.font1);
+      // lb.setContentSize(this.mapSize/4,0); 
+      lb.setScale(0.5);
+      lb.setAlignment(cc.TEXT_ALIGNMENT_CENTER); 
+      lb.setPosition(cc.winSize.width / 2 - this.mapSize / 2 - lb.width*0.5/ 2, 
+         cc.winSize.height / 2);
+      this.addChild(lb); 
    },
    addRevertButton: function () {
       if (selfPlay)
@@ -167,9 +185,18 @@ var ChessboardGUI = cc.Layer.extend({
       // lb.setLocalZOrder(10); 
       this.addChild(this.surrenderButton);
 
-      // this.revertButton.addTarget
-      this.surrenderButton.addTargetWithActionForControlEvents(this, this.sendResult.bind(this, (this.playerSide + 1) % 2), cc.CONTROL_EVENT_TOUCH_UP_INSIDE)
 
+      // this.revertButton.addTarget
+      this.surrenderButton.addTargetWithActionForControlEvents(this, this.surrender.bind(this) , cc.CONTROL_EVENT_TOUCH_UP_INSIDE)
+
+   },
+
+   surrender: function(){
+      
+       var okEvent = 
+        this.sendResult.bind(this, (this.playerSide + 1) % 2); 
+       
+       showDialogYesNo("You want to surrender?",okEvent); 
    },
 
    sendRevertRequest: function () {
@@ -243,6 +270,9 @@ var ChessboardGUI = cc.Layer.extend({
       }
 
    },
+   onRevertDeclined: function(){
+      showDialogNoButton("The opponent declined to revert!"); 
+   }, 
    performRevert: function (turn, player, processed) {
       var database = firebase.database();
       isChessboardTouchable = false;

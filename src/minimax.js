@@ -148,25 +148,25 @@ GameLogic.getValue = function (piece, x, y) {
     if (piece === null) {
         return 0;
     }
-    var getAbsoluteValue = function (piece, isWhite, x, y) {
+    var getAbsoluteValue = function (piece, isBlack, x, y) {
         if (piece.type === CHESS_TYPE.PAWN) {
-            return 10 + (isWhite ? evalArray.pawn[PLAYER.WHITE][y][x] : evalArray.pawn[PLAYER.BLACK][y][x]);
+            return 10 + (isBlack ? evalArray.pawn[PLAYER.BLACK][y][x] : evalArray.pawn[PLAYER.WHITE][y][x]);
         } else if (piece.type === CHESS_TYPE.CASTLE) {
-            return 50 + (isWhite ? evalArray.rook[PLAYER.WHITE][y][x] : evalArray.rook[PLAYER.BLACK][y][x]);
+            return 50 + (isBlack ? evalArray.rook[PLAYER.BLACK][y][x] : evalArray.rook[PLAYER.WHITE][y][x]);
         } else if (piece.type === CHESS_TYPE.KNIGHT) {
-            return 30 + evalArray.knight[PLAYER.WHITE][y][x];
+            return 30 + evalArray.knight[PLAYER.BLACK][y][x];
         } else if (piece.type === CHESS_TYPE.BISHOP) {
-            return 30 + (isWhite ? evalArray.bishop[PLAYER.WHITE][y][x] : evalArray.bishop[PLAYER.BLACK][y][x]);
+            return 30 + (isBlack ? evalArray.bishop[PLAYER.BLACK][y][x] : evalArray.bishop[PLAYER.WHITE][y][x]);
         } else if (piece.type === CHESS_TYPE.QUEEN) {
-            return 90 + evalArray.queen[PLAYER.WHITE][y][x];
+            return 90 + evalArray.queen[PLAYER.BLACK][y][x];
         } else if (piece.type === CHESS_TYPE.KING) {
-            return 900 + (isWhite ? evalArray.king[PLAYER.WHITE][y][x] : evalArray.king[PLAYER.BLACK][y][x]);
+            return 900 + (isBlack ? evalArray.king[PLAYER.BLACK][y][x] : evalArray.king[PLAYER.WHITE][y][x]);
         }
         throw "Unknown piece type: " + piece.type;
     };
 
     var absoluteValue = getAbsoluteValue(piece, piece.color === PLAYER.BLACK, x, y);
-    return piece.color === PLAYER.BLACK ? absoluteValue : -absoluteValue;
+    return piece.color === PLAYER.WHITE ? absoluteValue : -absoluteValue;
 };
 // };
 

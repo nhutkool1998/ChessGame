@@ -1,6 +1,7 @@
 var roomID = 0;
 var PADDING = 10;
-var selfPlay = false; 
+var MAX_ROOM = 100;
+var selfPlay = false;
 
 var StartGameScreen = cc.Layer.extend({
     bg: null,
@@ -10,7 +11,7 @@ var StartGameScreen = cc.Layer.extend({
     ctor: function () {
         this._super();
 
-        roomID = Math.floor(Math.random() * 100);
+        roomID = Math.floor(Math.random() * MAX_ROOM);
 
         this.bg = new cc.Sprite(res.war);
         this.bg.setScale(cc.winSize.height / this.bg.height);
@@ -21,7 +22,7 @@ var StartGameScreen = cc.Layer.extend({
         this.initRoom();
 
         // return;
-        this.labelCode = new cc.LabelBMFont("Your room code: " + roomID + "\nOr join a room:", res.font, 200, cc.TEXT_ALIGNMENT_CENTER);
+        this.labelCode = new cc.LabelBMFont("Your room code: " + roomID + "\ Join a room:", res.font, 200, cc.TEXT_ALIGNMENT_CENTER);
         this.labelCode.setAnchorPoint(0.5, 0.5);
         this.labelCode.setPosition(cc.winSize.width / 2, cc.winSize.height / 2 + 3 * this.labelCode.height / 2);
         this.labelCode.setScale(3);
@@ -57,7 +58,7 @@ var StartGameScreen = cc.Layer.extend({
         this.addChild(this.textField);
         this.addChild(this.startButton);
 
-        this.listenForGameStart(roomID,false);
+        this.listenForGameStart(roomID, false);
     },
     initRoom: function () {
         var database = firebase.database();
@@ -66,28 +67,41 @@ var StartGameScreen = cc.Layer.extend({
     joinGame: function () {
         var database = firebase.database();
         var p = {};
-        database.ref("room/"+roomID).off();
+        database.ref("room/" + roomID).off();
         var _roomID = this.textField.getString();
-        if (_roomID == roomID + ""){
+        if (_roomID == roomID + "") {
             selfPlay = true;
+            var isWhite = true;
+            this.listenForGameStart(_roomID, isWhite);
+            p[_roomID] = roomID;
+            database.ref("room/").set(p);
         }
-        p[_roomID] = roomID;
-        database.ref("room/").set(p);
-        var isWhite = true; 
-        this.listenForGameStart(_roomID,isWhite);
+        database.ref("room/" + _roomID).once('value').then((function (snapshot) {
+            if (snapshot == null || snapshot.val() == null || snapshot.val() != false) {
+                showDialogNoButton("The room does not exist!");
+            } else {
+                p[_roomID] = roomID;
+                database.ref("room/").set(p);
+                var isWhite = true;
+                this.listenForGameStart(_roomID, isWhite);
+            }
+        }).bind(this)); 
+
+
+        // this.listenForGameStart(_roomID,isWhite);
     },
-    listenForGameStart: function (_roomID,isWhite) {
-        cc.log("listenForGameStart",_roomID);
+    listenForGameStart: function (_roomID, isWhite) {
+        cc.log("listenForGameStart", _roomID);
         var database = firebase.database();
         database.ref("room/" + _roomID).on('value', function (snapshot) {
-          //  var isWhite = snapshot.val() == roomID;
+            //  var isWhite = snapshot.val() == roomID;
             if (snapshot.val() != false && snapshot.val() != null) {
-                var scene = new cc.Scene(); 
-                roomID = snapshot.val(); 
-                 scene.addChild(new ChessboardGUI(isWhite));
-                 database.ref("room/"+_roomID).off();
+                var scene = new cc.Scene();
+                roomID = snapshot.val();
+                scene.addChild(new ChessboardGUI(isWhite));
+                database.ref("room/" + _roomID).off();
                 cc.director.runScene(scene);
-                
+
             }
         });
 
